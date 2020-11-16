@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+export ydb_log=/tmp/yottadb/r1.30_x86_64
+export gtm_log=/tmp/yottadb/r1.30_x86_64
+export gtm_repl_instance=/root/.yottadb/r1.30_x86_64/g/yottadb.repl
+export ydb_repl_instance=/root/.yottadb/r1.30_x86_64/g/yottadb.repl
+export ydb_gbldir=/root/.yottadb/r1.30_x86_64/g/yottadb.gld
+export ydb_dir=/root/.yottadb
+export gtmver='V6.3-008_x86_64'
+export ydb_rel=r1.30_x86_64
+export gtmgbldir=/root/.yottadb/r1.30_x86_64/g/yottadb.gld
+export ydb_routines="/opt/mgweb/m /opt/mgweb/mapped /root/.yottadb/r1.30_x86_64/o*(/root/.yottadb/r1.30_x86_64/r /root/.yottadb/r) /usr/local/lib/yottadb/r130/libyottadbutil.so"
+export gtmdir=/root/.fis-gtm
+export ydb_tmp=/tmp/yottadb/r1.30_x86_64
+export gtm_tmp=/tmp/yottadb/r1.30_x86_64
+export gtm_dist=/usr/local/lib/yottadb/r130
+export ydb_dist=/usr/local/lib/yottadb/r130
+
+$ydb_dist/mumps -dir
+

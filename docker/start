@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+nginx -c /etc/nginx/nginx.conf
+echo "NGINX started"
+service xinetd start
+./ydb_run start^%zmgwebUtils
+echo ""
+echo "The mgweb Container is ready for use!"
+echo ""
+tail -f /var/log/nginx/access.log

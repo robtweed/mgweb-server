@@ -1,0 +1,30 @@
+timeout 30
+log_level eftw
+<cgi>
+ HTTP*
+  AUTH_PASSWORD       
+  AUTH_TYPE     
+  CONTENT_TYPE
+  GATEWAY_INTERFACE
+  PATH_TRANSLATED
+  REMOTE_ADDR
+  REMOTE_HOST
+  REMOTE_IDENT            
+  REMOTE_USER              
+  PATH_INFO
+  SERVER_NAME
+  SERVER_PORT
+  SERVER_SOFTWARE
+</cgi>
+<server local>
+ type IRIS
+ path C:\InterSystems\IRIS\mgr
+ username _SYSTEM
+ password SYS
+ namespace USER
+</server>
+
+<location /api>
+ function api^%zmgweb
+ servers local
+</location>

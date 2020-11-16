@@ -1,0 +1,34 @@
+timeout 30
+log_level eftw
+<cgi>
+ HTTP*
+  AUTH_PASSWORD       
+  AUTH_TYPE     
+  CONTENT_TYPE
+  GATEWAY_INTERFACE
+  PATH_TRANSLATED
+  REMOTE_ADDR
+  REMOTE_HOST
+  REMOTE_IDENT            
+  REMOTE_USER              
+  PATH_INFO
+  SERVER_NAME
+  SERVER_PORT
+  SERVER_SOFTWARE
+</cgi>
+<server local>
+ type YottaDB
+ path /usr/local/lib/yottadb/r130
+ <env>
+   ydb_dir=/root/.yottadb
+   ydb_rel=r1.30_x86_64
+   ydb_gbldir=/root/.yottadb/r1.30_x86_64/g/yottadb.gld
+   ydb_routines=/opt/mgweb/m /opt/mgweb/mapped /root/.yottadb/r1.30_x86_64/o*(/root/.yottadb/r1.30_x86_64/r /root/.yottadb/r) /usr/local/lib/yottadb/r130/libyottadbutil.so
+   ydb_ci=/usr/local/lib/yottadb/r130/zmgsi.ci
+ </env>
+</server>
+
+<location /api>
+ function api^%zmgweb
+ servers local
+</location>
