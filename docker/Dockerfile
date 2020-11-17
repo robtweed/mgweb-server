@@ -3,10 +3,9 @@
 # Dockerised version of mg_web with YottaDB, using NGINX
 
 # M/Gateway Developments Ltd
-# 4 November 2020
+# 16 November 2020
 
-#FROM ubuntu:20.04
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -38,7 +37,6 @@ RUN apt install -y \
   libelf1 \
   locate \
   nano \
-  subversion \
   xinetd \
   libtinfo5 \
   apache2-utils
@@ -90,26 +88,6 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && node --version \
   && npm --version
 
-ENV YARN_VERSION 1.22.5
-
-RUN set -ex \
-  && for key in \
-    6A010C5166006599AA17F08146C2130DFD2497F5 \
-  ; do \
-    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "$key" || \
-    gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-    gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
-  done \
-  && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
-  && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz.asc" \
-  && gpg --batch --verify yarn-v$YARN_VERSION.tar.gz.asc yarn-v$YARN_VERSION.tar.gz \
-  && mkdir -p /opt \
-  && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
-  && ln -s /opt/yarn-v$YARN_VERSION/bin/yarn /usr/local/bin/yarn \
-  && ln -s /opt/yarn-v$YARN_VERSION/bin/yarnpkg /usr/local/bin/yarnpkg \
-  && rm yarn-v$YARN_VERSION.tar.gz.asc yarn-v$YARN_VERSION.tar.gz \
-  # smoke test
-  && yarn --version
 # =========
 
 # Create app directory
@@ -226,17 +204,17 @@ RUN mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/fastcgi_temp /var/cac
  && chown nginx:nginx /var/cache/nginx/* \
  && chown -R nginx:nginx /var/log/nginx
 
-RUN git clone https://github.com/robtweed/wc-conduit /opt/mgweb/wc-conduit \
-  && mv /opt/mgweb/wc-conduit/components /etc/nginx/html/ \
-  && mv /opt/mgweb/wc-conduit/conduit-wc /etc/nginx/html/
-
-RUN git clone https://github.com/robtweed/mg-webComponents /opt/mgweb/mg-webComponents \
-  && mv /opt/mgweb/mg-webComponents/mg-webComponents.js /etc/nginx/html/
-
 # Re-check syntax and potential errors. 
 RUN nginx -t
 
-# Bundle app source
+# ===== 
+#  Now set up mg-web server to work with
+#  NGINX and YottaDB
+# =====
+
+# Copy files from the current Docker directory
+# and make any scripts executable
+
 COPY . /opt/mgweb
 RUN chmod +x /opt/mgweb/ydb \
  && chmod +x /opt/mgweb/ydb_run \
@@ -244,22 +222,49 @@ RUN chmod +x /opt/mgweb/ydb \
  && chmod +x /opt/mgweb/start \
  && chmod +x /opt/mgweb/restart
 
-RUN cp /opt/mgweb/nginx.conf /etc/nginx \
- && cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.default \
- && chown -R nginx:nginx /etc/nginx \
+# Install the NGINX configuration file
+# and set up correct ownership of mgweb files
+# for use by NGINX
+
+RUN mkdir /opt/mgweb/m
+
+# Fetch the generic mg_web server repository
+# and move its M code and mg_web conf and log
+# files into place
+
+RUN git clone https://github.com/robtweed/mgweb-server /opt/mgweb/server \
+  && cp /opt/mgweb/server/nginx/nginx.conf-docker /etc/nginx/nginx.conf \
+  && cp /opt/mgweb/server/nginx/nginx.conf-docker /etc/nginx/nginx.conf.default \
+  && mv /opt/mgweb/server/m/* /opt/mgweb/m/ \
+  && mv /opt/mgweb/server/config/mgweb.conf-yottadb /opt/mgweb/mgweb.conf \
+  && mv /opt/mgweb/server/config/mgweb.log /opt/mgweb
+
+RUN chown -R nginx:nginx /etc/nginx \
  && chown nginx:nginx /opt/mgweb/*
- # && chown -R nginx:nginx /opt/mgweb/mgweb.log
- # && chmod -R 755 /opt/mgweb
 
 RUN touch /var/run/nginx.pid \
   && chown -R nginx:nginx /var/run/nginx.pid
 
-RUN mkdir /opt/mgweb/m
+# Install the mg_WebComponents version of the RealWorld Client
+
+RUN git clone https://github.com/robtweed/wc-conduit /opt/mgweb/wc-conduit \
+  && mv /opt/mgweb/wc-conduit/components /etc/nginx/html/ \
+  && mv /opt/mgweb/wc-conduit/conduit-wc /etc/nginx/html/
+
+RUN git clone https://github.com/robtweed/mg-webComponents /opt/mgweb/mg-webComponents \
+  && mv /opt/mgweb/mg-webComponents/mg-webComponents.js /etc/nginx/html/
+
+# Install and configure the network mgsi interface code to allow
+# network access to YottaDB (default setup uses
+# API access to YottaDB)
 
 RUN git clone https://github.com/chrisemunt/mgsi /opt/mgweb/mgsi \
   && cp /opt/mgweb/mgsi/yottadb/* /opt/mgweb/m \
   && /opt/mgweb/ydb_run_temp ylink^%zmgsi \
   && rm -r /opt/mgweb/mgsi
+
+# Set up the xinetd interface for optional network access
+# to YottaDB
 
 RUN cp /opt/mgweb/mg_web/unix/zmgsi_ydb /usr/local/lib/yottadb/r130 \
   && cp /opt/mgweb/mg_web/unix/zmgsi_xinetd /etc/xinetd.d/zmgsi_xinetd \
@@ -269,31 +274,32 @@ RUN cp /opt/mgweb/mg_web/unix/zmgsi_ydb /usr/local/lib/yottadb/r130 \
   && sed -i 's/1.22/1.30/g' /usr/local/lib/yottadb/r130/zmgsi_ydb \
   && echo "zmgsi_xinetd          7041/tcp                        # zmgsi" >> /etc/services
 
-RUN mv /opt/mgweb/_zmgweb.m /opt/mgweb/m \
-  && mv /opt/mgweb/_zmgwebJWT.m /opt/mgweb/m \
-  && mv /opt/mgweb/_zmgwebUtils.m /opt/mgweb/m \
-  && chmod 777 /opt/mgweb/m/* \
+# Pre-load the %zmgweb* routines to prevent
+# IRIS-specific code generating warnings during startup
+
+RUN chmod 777 /opt/mgweb/m/* \
   && /opt/mgweb/ydb_run_temp ylink^%zmgweb \
   && rm ydb_run_temp
 
+# Clean up
+
 RUN rm /opt/mgweb/Dockerfile \
-  && rm /opt/mgweb/nginx.conf \
-  && rm /opt/mgweb/build.txt \
   && rm -r /opt/mgweb/openssl-1.1.1g \
   && rm -r /opt/mgweb/wc-conduit \
   && rm -r /opt/mgweb/pcre-8.44 \
   && rm -r /opt/mgweb/mg-webComponents \
   && rm -r /opt/mgweb/nginx-1.18.0 \
-  && rm -r /opt/mgweb/zlib-1.2.11
+  && rm -r /opt/mgweb/zlib-1.2.11 \
+  && rm -r /opt/mgweb/server
 
 RUN cd /opt/mgweb
 
 EXPOSE 8080
 
-# ENTRYPOINT ["/bin/bash", "./start"]
+# When container starts, start NGINX etc
+# and tail the NGINX access log
 
 CMD [ "/bin/bash", "./start" ]
 
-# CMD [ "/bin/bash", "nginx", "-c", "/etc/nginx/nginx.conf" ]
 
-# CMD [ "nginx", "-g", "daemon off;" ]
+# ENTRYPOINT ["/bin/bash", "./start"]
