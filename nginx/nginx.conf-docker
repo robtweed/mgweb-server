@@ -48,6 +48,13 @@ http {
           MGWEBThreadPool default;
         }
 
+        location /conduit-wc {
+          # return a 404 if /conduit-wc without trailing slash is used
+          #  notes - rewriting URL to add slash is no use as the
+          #  base/relative URL context is not /conduit-wc/
+          rewrite ^/conduit-wc$ 404;
+        }
+
         location / {
             root   html;
             index  index.html index.htm;

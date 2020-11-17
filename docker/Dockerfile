@@ -3,7 +3,7 @@
 # Dockerised version of mg_web with YottaDB, using NGINX
 
 # M/Gateway Developments Ltd
-# 16 November 2020
+# 17 November 2020
 
 FROM ubuntu:20.04
 
@@ -46,7 +46,7 @@ RUN apt install -y \
 RUN groupadd --gid 1000 node \
   && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
 
-ENV NODE_VERSION 14.15.0
+ENV NODE_VERSION 14.15.1
 
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
