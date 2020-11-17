@@ -53,7 +53,7 @@ api(%cgi,%var,%sys) ; mg_web handler for URLs matching /api/*
  i req("method")'="",req("path")'="" d
  . ; Check for an exact uri and path match first (e.g. "/static/rest/path")
  . s call=$g(^%zmgweb("routes",req("method"),req("path"))) i call'="" d  q
- . . s ^req("path_template")=req("path")
+ . . s req("path_template")=req("path")
  . ; Oherwise search for matches with cariables in path (e.g. "/api/:variable/action")
  . ;
  . n i,match,plen,p1,u1,uri
