@@ -24,7 +24,7 @@ mgwebJWT ; mg-web M back-end: JSON Web Token Functions
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 13 November 2020
+ ; 16 November 2020
  ;
  QUIT
  ;
@@ -104,7 +104,7 @@ getClaim(jwt,claim) ;
  n arr,claims,json
  ;
  s json=$$decodeJWT(jwt)
- i $$parseJSON^%zmgwebUtils(json,.claims,1)
+ i $$parseJSON^%zmgwebUtils(json,.claims)
  QUIT $g(claims(claim))
  ;
 createJWTUid()
@@ -174,10 +174,10 @@ base64UrlDecode(hash) ;
  ;
 hash(data,secretKey) ;
  ;
- n hash
+ n hash,stop
  ;
  i $zv["GT.M" d
- . n command,io,name,stop
+ . n command,io,name
  . s name="hmac"
  . s io=$io
  . ;s command="echo -n '"_data_"' | openssl dgst -sha256 -hmac '"_secretKey_"' -binary | base64"
@@ -186,19 +186,20 @@ hash(data,secretKey) ;
  . use name w data,/EOF 
  . read hash 
  . u io close name
- . s stop=0
- . f  q:stop  d
- . . i $e(hash,$l(hash))="=" d
- . . . s hash=$e(hash,1,$l(hash)-1)
- . . e  d
- .. . s stop=1
- . s hash=$$replace^%zmgwebUtils(hash,$c(13),"")
- . s hash=$$replace^%zmgwebUtils(hash,$c(10),"")
- . s hash=$$replace^%zmgwebUtils(hash,"+","-")
- . s hash=$$replace^%zmgwebUtils(hash,"/","_")
- . ;
  e  d
  . s hash=$System.Encryption.HMACSHA(256,data,secretKey)
+ . s hash=$System.Encryption.Base64Encode(hash)
+ ;
+ s stop=0
+ f  q:stop  d
+ . i $e(hash,$l(hash))="=" d
+ . . s hash=$e(hash,1,$l(hash)-1)
+ . e  d
+ . . s stop=1
+ s hash=$$replace^%zmgwebUtils(hash,$c(13),"")
+ s hash=$$replace^%zmgwebUtils(hash,$c(10),"")
+ s hash=$$replace^%zmgwebUtils(hash,"+","-")
+ s hash=$$replace^%zmgwebUtils(hash,"/","_")
  ;
  QUIT hash
  ;
@@ -222,4 +223,3 @@ getExpiryTime(expiry) ;
  s exp=then-4070908800
  QUIT exp
  ;
-

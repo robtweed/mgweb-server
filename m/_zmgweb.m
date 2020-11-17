@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 13 November 2020
+ ; 17 November 2020
  ;
  QUIT
  ;
@@ -41,9 +41,9 @@ api(%cgi,%var,%sys) ; mg_web handler for URLs matching /api/*
  ;
  n call,req
  ;
- ; m ^trace($h,"cgi")=%cgi
- ; m ^trace($h,"var")=%var
- ; m ^trace($h,"sys")=%sys
+ ;m ^trace($h,"cgi")=%cgi
+ ;m ^trace($h,"var")=%var
+ ;m ^trace($h,"sys")=%sys
  ;
  i $$parseRequest(.%cgi,.%var,.req)
  ;
@@ -75,7 +75,7 @@ api(%cgi,%var,%sys) ; mg_web handler for URLs matching /api/*
  i call="" q $$notFound()
  s req("call")=call
  s call="$$"_call_"(.req)"
- ;m ^rob($h,"req")=req
+ ;m ^trace($h,"req")=req
  QUIT @call
  ;
 notFound() ;
@@ -111,14 +111,13 @@ parseRequest(%cgi,%var,req) ;
   . s k=$zconvert(k,"L")
   . s req("headers",k)=%cgi(key)
   s req("method")=$g(%cgi("REQUEST_METHOD"))
-  s req("path")=$g(%cgi("PATH_TRANSLATED"))
-  i req("path")="" s req("path")=$g(%cgi("PATH_INFO"))
+  s req("path")=$g(%cgi("SCRIPT_NAME"))
   ;
-  i %var'="" d
+  i $g(%var)'="" d
   . n crlf,payload
   . s crlf=$c(13,10)
   . s payload=$$replace^%zmgwebUtils(%var,crlf,"")
-  . i $$parseJSON^%zmgwebUtils(payload,.json,1)
+  . i $$parseJSON^%zmgwebUtils(payload,.json)
   . m req("body")=json
   ;
   QUIT 1
