@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 16 November 2020
+ ; 17 November 2020
  ;
  QUIT
  ;
@@ -91,7 +91,7 @@ readJSONFile(filename,array) ;
  ;
 eoReadJSONFile ;
  c filename u io
- i $zt'["GT.M" s $zt=%zt
+ i $zv'["GT.M" s $zt=%zt
  i $$parseJSON(json,.array)
  QUIT 1
   ;
