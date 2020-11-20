@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+chmod 0777 mapped
+
+if [ -f "/opt/mgweb/mapped/start" ]; then
+  echo "Running user customisation start file"
+  chmod +x /opt/mgweb/mapped/start
+  /opt/mgweb/mapped/start
+fi
+
+/etc/init.d/apache2 start
+echo "Apache started"
+#service xinetd start
+./ydb_run start^%zmgwebUtils
+echo ""
+echo "The mgweb Container is ready for use!"
+echo ""
+tail -f /var/log/apache2/other_vhosts_access.log
+

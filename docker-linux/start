@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+if [ -f "/opt/mgweb/mapped/start" ]; then
+  echo "Running user customisation start file"
+  chmod +x /opt/mgweb/mapped/start
+  /opt/mgweb/mapped/start
+fi
+
 nginx -c /etc/nginx/nginx.conf
 echo "NGINX started"
 service xinetd start
