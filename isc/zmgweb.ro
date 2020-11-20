@@ -413,6 +413,9 @@ start ;
  i $$buildAPIs()
  QUIT
  ;
+response(res) ;
+ QUIT $$header^%zmgweb()_$$arrayToJSON("res")
+ ;
 setJWTIssuer(filename)
  ;
  n config,ok

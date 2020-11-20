@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 17 November 2020
+ ; 20 November 2020
  ;
  QUIT
  ;
@@ -39,6 +39,9 @@ start ;
  i $$setJWTIssuer()
  i $$buildAPIs()
  QUIT
+ ;
+response(res) ;
+ QUIT $$header^%zmgweb()_$$arrayToJSON("res")
  ;
 setJWTIssuer(filename)
  ;

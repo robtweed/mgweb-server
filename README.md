@@ -282,7 +282,15 @@ above example as:
          s res("pong")="true"
          QUIT $$header^%zmgweb()_$$arrayToJSON^%zmgwebUtils("res")
 
-Note that the JSON/array mapping includes automatic mapping of the boolean
+or, make use of the *response()* function in *^%zmgwebUtils* which
+combines the creation of the header and JSON payload:
+
+        ping(req) ;
+         n res
+         s res("pong")="true"
+         QUIT $$response^%zmgwebUtils(.res)
+
+Note in the above example that the JSON/array mapping includes automatic mapping of the boolean
 values (true/false) within JSON to/from corresponding text values in 
 the mapped array ("true"/"false")
 
