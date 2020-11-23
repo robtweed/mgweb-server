@@ -20,7 +20,7 @@ log_level eftw
  type YottaDB
  path /usr/local/lib/yottadb/r130
  <env>
-   ydb_dir=/root/.yottadb
+   ydb_dir=/opt/yottadb
    ydb_rel=r1.30_x86_64
    ydb_gbldir=/opt/yottadb/yottadb.gld
    ydb_routines=/opt/mgweb/m /opt/mgweb/mapped /usr/local/lib/yottadb/r130/libyottadbutil.so
