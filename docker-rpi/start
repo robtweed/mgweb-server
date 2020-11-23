@@ -11,6 +11,10 @@ fi
 /etc/init.d/apache2 start
 echo "Apache started"
 #service xinetd start
+export ydb_gbldir=/opt/yottadb/yottadb.gld
+/usr/local/lib/yottadb/r130/mupip rundown -region default
+/usr/local/lib/yottadb/r130/mupip set -key_size=1019 -region default
+/usr/local/lib/yottadb/r130/mupip set -record_size=1048576 -region default
 ./ydb_run start^%zmgwebUtils
 echo ""
 echo "The mgweb Container is ready for use!"

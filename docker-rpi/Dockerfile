@@ -3,7 +3,7 @@
 # Dockerised version of mg_web with YottaDB, using Apache
 
 # M/Gateway Developments Ltd
-# 20 November 2020
+# 22 November 2020
 
 FROM ubuntu:18.04
 
@@ -30,7 +30,8 @@ RUN apt-get install -y \
 # Create app directory
 RUN mkdir -p /opt/mgweb \
  && mkdir /opt/mg_web \
- && mkdir /opt/mgweb/m
+ && mkdir /opt/mgweb/m \
+ && mkdir /opt/yottadb
 
 WORKDIR /opt/mgweb
 
@@ -61,7 +62,7 @@ RUN sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb \
 
 # Fetch the generic mg_web server repository
 # and move its M code and mg_web conf and log
-# files into place
+# files into place 
 
 RUN git clone https://github.com/robtweed/mgweb-server /opt/mgweb/server \
   && mv /opt/mgweb/server/m/* /opt/mgweb/m/ \
@@ -78,7 +79,7 @@ RUN mkdir /tmp/tmp \
   && cd /tmp/tmp \
   && chmod +x ydbinstall.sh \
   && ./ydbinstall.sh --utf8 default --verbose --force-install \
-  && export ydb_gbldir=/opt/mgweb/m/yottadb.gld \
+  && export ydb_gbldir=/opt/yottadb/yottadb.gld \
   && /usr/local/lib/yottadb/r130/mumps -run ^GDE < /opt/mgweb/gde.txt \
   && /usr/local/lib/yottadb/r130/mupip create
 
