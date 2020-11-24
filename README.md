@@ -599,7 +599,7 @@ are triggered if:
 
 - you press CTRL&C when running the Container in a foreground, interactive session
 
-= you invoke the *docker stop* command.
+- you invoke the *docker stop* command.
 
 When these are triggered, the Container automatically stops Apache which, in turn,
 makes *mg_web* disconnect the Apache Worker Process(es) from the YottaDB API interface.
