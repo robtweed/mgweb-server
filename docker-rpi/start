@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 chmod 0777 mapped
 
@@ -7,6 +7,19 @@ if [ -f "/opt/mgweb/mapped/start" ]; then
   chmod +x /opt/mgweb/mapped/start
   /opt/mgweb/mapped/start
 fi
+
+term_handler(){
+   echo "*** Container stopping - Please wait *****"
+   /etc/init.d/apache2 stop
+   echo "Apache stopped and connections to YottaDB released"
+   sleep 5
+   echo "Container will now stop"
+   exit 0
+}
+
+# Setup signal handlers
+trap 'term_handler' SIGTERM
+trap 'term_handler' SIGINT
 
 /etc/init.d/apache2 start
 echo "Apache started"
@@ -19,5 +32,10 @@ export ydb_gbldir=/opt/yottadb/yottadb.gld
 echo ""
 echo "The mgweb Container is ready for use!"
 echo ""
-tail -f /var/log/apache2/other_vhosts_access.log
+
+while true
+do
+   tail -f /var/log/apache2/other_vhosts_access.log & wait ${!}
+done
+
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
-nginx -s reload
-echo "NGINX restarted"
+/etc/init.d/apache2 stop
+/etc/init.d/apache2 start
+echo "Apache restarted"
 

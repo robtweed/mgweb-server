@@ -1,0 +1,2 @@
+change -segment default -file=/opt/yottadb/mgweb.dat
+exit

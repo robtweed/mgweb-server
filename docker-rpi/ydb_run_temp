@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 export ydb_gbldir=/opt/yottadb/yottadb.gld
-export ydb_dir=/root/.yottadb
+export ydb_dir=/opt/yottadb
 export ydb_rel=r1.30_x86_64
 export ydb_routines=/opt/mgweb/m
 export ydb_dist=/usr/local/lib/yottadb/r130

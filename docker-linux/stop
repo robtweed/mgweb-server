@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+/etc/init.d/apache2 stop
+echo "Apache stopped and connections to YottaDB have been released"
+

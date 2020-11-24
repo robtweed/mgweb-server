@@ -3,7 +3,7 @@
 # Dockerised version of mg_web with YottaDB, using Apache
 
 # M/Gateway Developments Ltd
-# 22 November 2020
+# 24 November 2020
 
 FROM ubuntu:18.04
 
@@ -25,7 +25,8 @@ RUN apt-get install -y \
   apache2 \
   apache2-utils \
   apache2-dev \
-  libelf1
+  libelf1 \
+  lsof
 
 # Create app directory
 RUN mkdir -p /opt/mgweb \
@@ -54,10 +55,12 @@ COPY . /opt/mgweb
 RUN sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb \
  && sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb_run \
  && sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb_run_temp \
+ && dos2unix /opt/mgweb/* \
  && chmod +x /opt/mgweb/ydb \
  && chmod +x /opt/mgweb/ydb_run \
  && chmod +x /opt/mgweb/ydb_run_temp \
  && chmod +x /opt/mgweb/start \
+ && chmod +x /opt/mgweb/stop \
  && chmod +x /opt/mgweb/restart
 
 # Fetch the generic mg_web server repository
@@ -68,9 +71,9 @@ RUN git clone https://github.com/robtweed/mgweb-server /opt/mgweb/server \
   && mv /opt/mgweb/server/m/* /opt/mgweb/m/ \
   && mv /opt/mgweb/server/config/mgweb.conf-yottadb-apache /opt/mgweb/mgweb.conf \
   && mv /opt/mgweb/server/config/mgweb.log /opt/mgweb \
-  && sed -i 's/x86_64/armv7l/g' /opt/mgweb/mgweb.conf
-
-RUN cp /opt/mgweb/server/apache/* /etc/apache2
+  && sed -i 's/x86_64/armv7l/g' /opt/mgweb/mgweb.conf \
+  && chown www-data:www-data /opt/mgweb/* \
+  && cp /opt/mgweb/server/apache/* /etc/apache2
 
 RUN echo "Installing YottaDB..."
 
@@ -84,10 +87,6 @@ RUN mkdir /tmp/tmp \
   && /usr/local/lib/yottadb/r130/mupip create
 
 # Install the mg_WebComponents version of the RealWorld Client
-
-#RUN chown -R ubuntu:root /var/www
-
-#USER ubuntu
 
 RUN git clone https://github.com/robtweed/wc-conduit /opt/mgweb/wc-conduit \
   && mv /opt/mgweb/wc-conduit/components /var/www/html/ \
@@ -119,8 +118,6 @@ RUN cp /opt/mgweb/mg_web/unix/zmgsi_ydb /usr/local/lib/yottadb/r130 \
 
 # Pre-load the %zmgweb* routines to prevent
 # IRIS-specific code generating warnings during startup
-
-#USER root
 
 RUN chown -R www-data:www-data /opt/mgweb/m \
   && /opt/mgweb/ydb_run_temp ylink^%zmgweb \

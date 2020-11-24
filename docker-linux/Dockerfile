@@ -1,216 +1,53 @@
-# mg_web + YottaDB
+# mg_web + YottaDB for Linux
 
-# Dockerised version of mg_web with YottaDB, using NGINX
+# Dockerised version of mg_web with YottaDB, using Apache
 
 # M/Gateway Developments Ltd
-# 17 November 2020
+# 23 November 2020
 
 FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt upgrade -y
+RUN apt-get update && apt-get upgrade -y
 
-RUN apt install -y \
-  software-properties-common \
-  ufw \
-  build-essential \
-  git \
-  tree \
-  perl \
-  libperl-dev \
-  libgd3 \
-  libgd-dev \
-  libgeoip1 \
-  libgeoip-dev \
-  geoip-bin \
-  libxml2 \
-  libxml2-dev \
-  libxslt1.1 \
-  libxslt1-dev \
-  libssl-dev \
-  dos2unix \
-  wget \
-  gzip \
-  openssh-server \
+RUN apt-get install -y \
   curl \
-  libelf1 \
+  build-essential \
+  make \
+  gcc \
+  git \
+  wget \
+  dos2unix \
   locate \
   nano \
   xinetd \
+  apache2 \
+  apache2-utils \
+  apache2-dev \
+  libelf1 \
   libtinfo5 \
-  apache2-utils
-
-# ========= Install Node.js for good measure
-
-RUN groupadd --gid 1000 node \
-  && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
-
-ENV NODE_VERSION 14.15.1
-
-RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
-  && case "${dpkgArch##*-}" in \
-    amd64) ARCH='x64';; \
-    ppc64el) ARCH='ppc64le';; \
-    s390x) ARCH='s390x';; \
-    arm64) ARCH='arm64';; \
-    armhf) ARCH='armv7l';; \
-    i386) ARCH='x86';; \
-    *) echo "unsupported architecture"; exit 1 ;; \
-  esac \
-  # gpg keys listed at https://github.com/nodejs/node#release-keys
-  && set -ex \
-  && for key in \
-    4ED778F539E3634C779C87C6D7062848A1AB005C \
-    94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
-    1C050899334244A8AF75E53792EF661D867B9DFA \
-    71DCFD284A79C3B38668286BC97EC7A07EDE3FC1 \
-    8FCCA13FEF1D0C2E91008E09770F7A9A5AE15600 \
-    C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
-    C82FA3AE1CBEDC6BE46B9360C43CEC45C17AB93C \
-    DD8F2338BAE7501E3DD5AC78C273792F7D83545D \
-    A48C2BEE680E841632CD4E44F07496B3EB3C1762 \
-    108F52B48DB57BB0CC439B2997B01419BD92F80A \
-    B9E2F5981AA6E0CD28160D9FF13993A75599653C \
-  ; do \
-    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "$key" || \
-    gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-    gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
-  done \
-  && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH.tar.xz" \
-  && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
-  && gpg --batch --decrypt --output SHASUMS256.txt SHASUMS256.txt.asc \
-  && grep " node-v$NODE_VERSION-linux-$ARCH.tar.xz\$" SHASUMS256.txt | sha256sum -c - \
-  && tar -xJf "node-v$NODE_VERSION-linux-$ARCH.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
-  && rm "node-v$NODE_VERSION-linux-$ARCH.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt \
-  && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
-  # smoke tests
-  && node --version \
-  && npm --version
-
-# =========
+  lsof
 
 # Create app directory
-RUN mkdir -p /opt/mgweb
+RUN mkdir -p /opt/mgweb \
+ && mkdir /opt/mg_web \
+ && mkdir /opt/mgweb/m \
+ && mkdir /opt/yottadb
+
 WORKDIR /opt/mgweb
-
-RUN echo "Installing YottaDB..."
-
-RUN mkdir /tmp/tmp \
-  && wget -P /tmp/tmp https://gitlab.com/YottaDB/DB/YDB/raw/master/sr_unix/ydbinstall.sh \
-  && cd /tmp/tmp \
-  && chmod +x ydbinstall.sh \
-  && ./ydbinstall.sh --utf8 default --verbose \
-  && /bin/bash -c "source /usr/local/lib/yottadb/r130/ydb_env_set"
-
-RUN cd ~
-
-RUN echo "Installing NGINX"
-
-RUN wget https://nginx.org/download/nginx-1.18.0.tar.gz && tar zxvf nginx-1.18.0.tar.gz
-# PCRE version 8.44
-RUN wget https://ftp.pcre.org/pub/pcre/pcre-8.44.tar.gz && tar xzvf pcre-8.44.tar.gz
-
-# zlib version 1.2.11
-RUN wget https://www.zlib.net/zlib-1.2.11.tar.gz && tar xzvf zlib-1.2.11.tar.gz
-
-# OpenSSL version 1.1.1g
-RUN wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz && tar xzvf openssl-1.1.1g.tar.gz
-
-RUN rm -rf *.tar.gz
 
 # Get mg-web
 
-RUN mkdir /opt/mg_web
-RUN git clone https://github.com/chrisemunt/mg_web
-RUN cp /opt/mgweb/mg_web/src/*.h /opt/mg_web
-RUN cp /opt/mgweb/mg_web/src/*.c /opt/mg_web
-RUN cp /opt/mgweb/mg_web/src/nginx/* /opt/mg_web
+RUN git clone https://github.com/chrisemunt/mg_web  \
+ && cp /opt/mgweb/mg_web/src/*.h /opt/mg_web \
+ && cp /opt/mgweb/mg_web/src/*.c /opt/mg_web \
+ && cp /opt/mgweb/mg_web/src/apache/* /opt/mg_web \
+ && cd /opt/mg_web \
+ && dos2unix *
+
 RUN cd /opt/mg_web \
-  && dos2unix *
-
-RUN cd /opt/mgweb/nginx-1.18.0 \
- && ./configure --prefix=/etc/nginx \
-            --sbin-path=/usr/sbin/nginx \
-            --modules-path=/usr/lib/nginx/modules \
-            --conf-path=/etc/nginx/nginx.conf \
-            --error-log-path=/var/log/nginx/error.log \
-            --pid-path=/var/run/nginx.pid \
-            --lock-path=/var/run/nginx.lock \
-            --user=root \
-            --group=root \
-            --build=Ubuntu \
-            --builddir=nginx-1.18.0 \
-            --with-select_module \
-            --with-poll_module \
-            --with-threads \
-            --with-file-aio \
-            --with-http_ssl_module \
-            --with-http_v2_module \
-            --with-http_realip_module \
-            --with-http_addition_module \
-            --with-http_xslt_module=dynamic \
-            --with-http_image_filter_module=dynamic \
-            --with-http_geoip_module=dynamic \
-            --with-http_sub_module \
-            --with-http_dav_module \
-            --with-http_flv_module \
-            --with-http_mp4_module \
-            --with-http_gunzip_module \
-            --with-http_gzip_static_module \
-            --with-http_auth_request_module \
-            --with-http_random_index_module \
-            --with-http_secure_link_module \
-            --with-http_degradation_module \
-            --with-http_slice_module \
-            --with-http_stub_status_module \
-            --with-http_perl_module=dynamic \
-            --http-log-path=/var/log/nginx/access.log \
-            --http-client-body-temp-path=/var/cache/nginx/client_temp \
-            --http-proxy-temp-path=/var/cache/nginx/proxy_temp \
-            --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
-            --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
-            --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
-            --with-mail=dynamic \
-            --with-mail_ssl_module \
-            --with-stream=dynamic \
-            --with-stream_ssl_module \
-            --with-stream_realip_module \
-            --with-stream_geoip_module=dynamic \
-            --with-stream_ssl_preread_module \
-            --with-compat \
-            --with-pcre=../pcre-8.44 \
-            --with-pcre-jit \
-            --with-zlib=../zlib-1.2.11 \
-            --with-openssl=../openssl-1.1.1g \
-            --with-openssl-opt=no-nextprotoneg \
-            --with-debug \
-            --add-module=/opt/mg_web \
-  && make \
-  && make install
-
-RUN cd /opt/mgweb
-RUN ln -s /usr/lib/nginx/modules /etc/nginx/modules \
- && nginx -V
-
-RUN adduser --system --home /nonexistent --shell /bin/false --no-create-home --disabled-login --disabled-password --gecos "nginx user" --group nginx
-# Check that user and group are created
-RUN tail -n 1 /etc/passwd /etc/group /etc/shadow
-
-
-# Create NGINX cache directories and set proper permissions
-RUN mkdir -p /var/cache/nginx/client_temp /var/cache/nginx/fastcgi_temp /var/cache/nginx/proxy_temp /var/cache/nginx/scgi_temp /var/cache/nginx/uwsgi_temp \
- && chmod 700 /var/cache/nginx/* \
- && chown nginx:nginx /var/cache/nginx/* \
- && chown -R nginx:nginx /var/log/nginx
-
-# Re-check syntax and potential errors. 
-RUN nginx -t
-
-# ===== 
-#  Now set up mg-web server to work with
-#  NGINX and YottaDB
-# =====
+ && apxs -a -i -c mg_web_apache.c mg_web.c mg_websocket.c
 
 # Copy files from the current Docker directory
 # and make any scripts executable
@@ -220,39 +57,39 @@ RUN chmod +x /opt/mgweb/ydb \
  && chmod +x /opt/mgweb/ydb_run \
  && chmod +x /opt/mgweb/ydb_run_temp \
  && chmod +x /opt/mgweb/start \
+ && chmod +x /opt/mgweb/stop \
  && chmod +x /opt/mgweb/restart
-
-# Install the NGINX configuration file
-# and set up correct ownership of mgweb files
-# for use by NGINX
-
-RUN mkdir /opt/mgweb/m
 
 # Fetch the generic mg_web server repository
 # and move its M code and mg_web conf and log
-# files into place
+# files into place 
 
 RUN git clone https://github.com/robtweed/mgweb-server /opt/mgweb/server \
-  && cp /opt/mgweb/server/nginx/nginx.conf-docker /etc/nginx/nginx.conf \
-  && cp /opt/mgweb/server/nginx/nginx.conf-docker /etc/nginx/nginx.conf.default \
   && mv /opt/mgweb/server/m/* /opt/mgweb/m/ \
-  && mv /opt/mgweb/server/config/mgweb.conf-yottadb /opt/mgweb/mgweb.conf \
-  && mv /opt/mgweb/server/config/mgweb.log /opt/mgweb
+  && mv /opt/mgweb/server/config/mgweb.conf-yottadb-apache /opt/mgweb/mgweb.conf \
+  && mv /opt/mgweb/server/config/mgweb.log /opt/mgweb \
+  && chown www-data:www-data /opt/mgweb/* \
+  && cp /opt/mgweb/server/apache/* /etc/apache2
 
-RUN chown -R nginx:nginx /etc/nginx \
- && chown nginx:nginx /opt/mgweb/*
+RUN echo "Installing YottaDB..."
 
-RUN touch /var/run/nginx.pid \
-  && chown -R nginx:nginx /var/run/nginx.pid
+RUN mkdir /tmp/tmp \
+  && wget -P /tmp/tmp https://gitlab.com/YottaDB/DB/YDB/raw/master/sr_unix/ydbinstall.sh \
+  && cd /tmp/tmp \
+  && chmod +x ydbinstall.sh \
+  && ./ydbinstall.sh --utf8 default --verbose --force-install \
+  && export ydb_gbldir=/opt/yottadb/yottadb.gld \
+  && /usr/local/lib/yottadb/r130/mumps -run ^GDE < /opt/mgweb/gde.txt \
+  && /usr/local/lib/yottadb/r130/mupip create
 
 # Install the mg_WebComponents version of the RealWorld Client
 
 RUN git clone https://github.com/robtweed/wc-conduit /opt/mgweb/wc-conduit \
-  && mv /opt/mgweb/wc-conduit/components /etc/nginx/html/ \
-  && mv /opt/mgweb/wc-conduit/conduit-wc /etc/nginx/html/
+  && mv /opt/mgweb/wc-conduit/components /var/www/html/ \
+  && mv /opt/mgweb/wc-conduit/conduit-wc /var/www/html/
 
 RUN git clone https://github.com/robtweed/mg-webComponents /opt/mgweb/mg-webComponents \
-  && mv /opt/mgweb/mg-webComponents/mg-webComponents.js /etc/nginx/html/
+  && mv /opt/mgweb/mg-webComponents/mg-webComponents.js /var/www/html/
 
 # Install and configure the network mgsi interface code to allow
 # network access to YottaDB (default setup uses
@@ -261,7 +98,8 @@ RUN git clone https://github.com/robtweed/mg-webComponents /opt/mgweb/mg-webComp
 RUN git clone https://github.com/chrisemunt/mgsi /opt/mgweb/mgsi \
   && cp /opt/mgweb/mgsi/yottadb/* /opt/mgweb/m \
   && /opt/mgweb/ydb_run_temp ylink^%zmgsi \
-  && rm -r /opt/mgweb/mgsi
+  && rm -r /opt/mgweb/mgsi \
+  && cp /opt/mgweb/mg_web/unix/zmgsi.ci /usr/local/lib/yottadb/r130
 
 # Set up the xinetd interface for optional network access
 # to YottaDB
@@ -277,29 +115,27 @@ RUN cp /opt/mgweb/mg_web/unix/zmgsi_ydb /usr/local/lib/yottadb/r130 \
 # Pre-load the %zmgweb* routines to prevent
 # IRIS-specific code generating warnings during startup
 
-RUN chmod 777 /opt/mgweb/m/* \
+RUN chown -R www-data:www-data /opt/mgweb/m \
   && /opt/mgweb/ydb_run_temp ylink^%zmgweb \
   && rm ydb_run_temp
 
 # Clean up
 
 RUN rm /opt/mgweb/Dockerfile \
-  && rm -r /opt/mgweb/openssl-1.1.1g \
+  && rm -r /opt/mgweb/gde.txt \
   && rm -r /opt/mgweb/wc-conduit \
-  && rm -r /opt/mgweb/pcre-8.44 \
   && rm -r /opt/mgweb/mg-webComponents \
-  && rm -r /opt/mgweb/nginx-1.18.0 \
-  && rm -r /opt/mgweb/zlib-1.2.11 \
   && rm -r /opt/mgweb/server
+
+RUN updatedb
 
 RUN cd /opt/mgweb
 
 EXPOSE 8080
 
-# When container starts, start NGINX etc
-# and tail the NGINX access log
+# When container starts, start Apache etc
+# and tail the Apache access log
 
 CMD [ "/bin/bash", "./start" ]
 
-
-# ENTRYPOINT ["/bin/bash", "./start"]
+# ENTRYPOINT ["/bin/bash"]

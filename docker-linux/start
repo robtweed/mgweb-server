@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+chmod 0777 mapped
 
 if [ -f "/opt/mgweb/mapped/start" ]; then
   echo "Running user customisation start file"
@@ -6,11 +8,35 @@ if [ -f "/opt/mgweb/mapped/start" ]; then
   /opt/mgweb/mapped/start
 fi
 
-nginx -c /etc/nginx/nginx.conf
-echo "NGINX started"
-service xinetd start
+# SIGTERM-handler this funciton will be executed when the container receives the SIGTERM signal (when stopping)
+term_handler(){
+   echo "*** Container stopping - Please wait *****"
+   /etc/init.d/apache2 stop
+   echo "Apache stopped and connections to YottaDB released"
+   sleep 5
+   exit 0
+}
+
+# Setup signal handlers
+trap 'term_handler' SIGTERM
+trap 'term_handler' SIGINT
+
+/etc/init.d/apache2 start
+echo "Apache started"
+#service xinetd start
+export ydb_gbldir=/opt/yottadb/yottadb.gld
+/usr/local/lib/yottadb/r130/mupip rundown -region default
+/usr/local/lib/yottadb/r130/mupip set -key_size=1019 -region default
+/usr/local/lib/yottadb/r130/mupip set -record_size=1048576 -region default
 ./ydb_run start^%zmgwebUtils
 echo ""
 echo "The mgweb Container is ready for use!"
 echo ""
-tail -f /var/log/nginx/access.log
+
+while true
+do
+   tail -f /var/log/apache2/other_vhosts_access.log & wait ${!}
+done
+
+# tail -f /var/log/apache2/other_vhosts_access.log
+

@@ -1,7 +1,7 @@
 # mgweb-server: Generic Back-end for mg_web REST services
  
 Rob Tweed <rtweed@mgateway.com>
-20 November 2020, M/Gateway Developments Ltd [http://www.mgateway.com](http://www.mgateway.com)  
+24 November 2020, M/Gateway Developments Ltd [http://www.mgateway.com](http://www.mgateway.com)  
 
 Twitter: @rtweed
 
@@ -363,13 +363,7 @@ incoming REST request in order to process it appropriately.
 The quickest and easiest way to try out *mgweb-server* is to use the pre-built Docker Container.
 This pre-packages everything you need as the basis of a working *mgweb-server* system.
 
-The Docker Container for Linux pre-packages the following components
-
-- database: YottaDB
-- web server: NGINX
-- mg_web: integrating NGINX and YottaDB
-
-while the Docker Container for Raspberry Pi pre-packages the following components
+The Docker Containers for both Linux and Raspberry Pi pre-package the following components
 
 - database: YottaDB
 - web server: Apache
@@ -406,7 +400,7 @@ Start the Containers as follows:
 
   For example:
 
-        docker run -d --name nginx --rm -p 3000:8080 -v /home/ubuntu/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb
+        docker run -d --name mgweb --rm -p 3000:8080 -v /home/ubuntu/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb
 
   To run as a foreground process, change the *-d* directive to *-it*.
 
@@ -417,7 +411,7 @@ Start the Containers as follows:
 
   For example:
 
-        docker run -d --name apache --rm -p 3000:8080 -v /home/pi/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb-rpi
+        docker run -d --name mgweb --rm -p 3000:8080 -v /home/pi/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb-rpi
 
   To run as a foreground process, change the *-d* directive to *-it*.
 
@@ -433,7 +427,7 @@ you, but it allows you to, for example, pull in your own customised versions
 of the web server configuration file, or make any other amendments to the
 running Container's set-up and configuration.
 
-2) The Web Server is started.
+2) The Web Server (Apache) is started.
 
 3) The *buildAPIs^%zmgwebUtils* routine is executed, constructing the
 *^%zmgweb* Global from the *routes.json* file in your mapped host directory. 
@@ -448,19 +442,19 @@ web server log by running:
 
   eg
 
-        docker logs -f nginx
+        docker logs -f mgweb
 
 
 ## Restarting the Web Server
 
-If you need to restart the web server within the Container, first shell
+If you need to restart Apache within the Container, first shell
 into it:
 
         docker exec -it {container_name} bash
 
 eg:
 
-        docker exec -it nginx bash
+        docker exec -it mgweb bash
 
 
 The Container's shell will place you in the */opt/mgweb* folder.
@@ -468,7 +462,7 @@ From there, simply type:
 
         ./restart
 
-The web server will restart and you can resume using *mgweb-server*.
+Apache will restart and you can resume using *mgweb-server*.
 
 
 ## Try it Out with *mgweb-conduit*
@@ -482,11 +476,11 @@ You can then map it into the *mgweb-server* Container, for example:
 
 - Linux:
 
-        docker run -d --name nginx --rm -p 3000:8080 -v /home/ubuntu/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb
+        docker run -d --name mgweb --rm -p 3000:8080 -v /home/ubuntu/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb
 
 - Raspberry Pi:
 
-        docker run -d --name nginx --rm -p 3000:8080 -v /home/pi/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb-rpi
+        docker run -d --name mgweb --rm -p 3000:8080 -v /home/pi/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb-rpi
 
 
 The routes defined in the *mgweb-conduit* folder will automatically
@@ -496,6 +490,123 @@ run-time environment.
 
 For more details, and to examine the *mgweb-conduit* API definitions and handler code, jump
 over to the [*mgweb-conduit* repository](https://github.com/robtweed/mgweb-conduit)
+
+
+## Persisting your YottaDB Database Between Container Restarts
+
+By default, when you stop the *mgweb-server* Container, any data you created
+will be lost.
+
+In order to persist your YottaDB database between Container restarts, you need
+to map the files used by YottaDB for Global storage to ones that physically
+reside on the host system.  To do this, simply follow the instructions below:
+
+
+### Create a *start* file
+
+You need to create a customising *start* file, in this case one that will 
+copy the Container's initial YottaDB database files to your 
+mapped host directory.
+
+If you are using the cloned *mgweb-conduit* repository with your
+*mgweb-server* Container, you'll find a file named *start_copy_ydb*
+that will do this for you.  If so, simply copy this 
+file (*~/mgweb-conduit/start_copy_ydb*) to a new one named *start*, eg:
+
+        cp ~/mgweb-conduit/start_copy_ydb ~/mgweb-conduit/start
+
+Alternatively, if you are using your own mapped directory, create a file named *start*
+containing the following:
+
+        mkdir /opt/mgweb/mapped/ydb130
+        cp /opt/yottadb/* /opt/mgweb/mapped/ydb130
+        echo "YottaDB Global Directory files copied"
+
+
+### Start the Container as normal
+
+  For example, on Linux:
+
+        docker run -it --name mgweb --rm -p 3000:8080 -v /home/ubuntu/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb
+
+  or on Raspberry Pi:
+
+        docker run -it --name mgweb --rm -p 3000:8080 -v /home/pi/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb-rpi
+
+
+  You should see this at the start of the output from the Container:
+
+        Running user customisation start file
+        YottaDB Global Directory files copied
+
+
+### Shut down the Container with CTRL & C
+
+You should now find a subdirectory named *ydb130* in your mapped host directory.
+If you take a look inside it, you'll see two files that were created by
+YottaDB within the running Container:
+
+        mgweb.dat
+        yottadb.gld
+
+
+### Delete the *start* file
+
+You should delete the *start file that you created previously, to prevent it being 
+re-used again next time you start the Container, eg:
+
+        rm ~/mgweb-conduit/start
+
+
+### Move the *ydb130* Directory
+
+The *ydb130* Directory that was created by your *start* file now
+needs to be moved to a directory of your choice somewhere else on your host
+system.
+
+For example, to move it to the directory *~/ydb130*:
+
+        sudo mv ~/mgweb-conduit/ydb130 ~/ydb130
+
+Now change its file permissions so that it can be used by the *mg_web* Apache 
+within the Container:
+
+        sudo chown -R www-data:www-data ~/ydb130
+
+
+### Restart the Container Using the Mapped YottaDB Database Files
+
+
+From now on you can map this *ydb130* volume into the *mgweb_server* Container.  
+Make sure you map it to the Container's */opt/yottadb* directory.
+
+For example, on Linux:
+
+        docker run -it --name mgweb --rm -p 3000:8080 -v /home/ubuntu/mgweb-conduit:/opt/mgweb/mapped -v /home/ubuntu/ydb130:/opt/yottadb rtweed/mgweb
+
+or on Raspberry Pi:
+
+        docker run -it --name conduit --rm -p 3000:8080 -v /home/pi/mgweb-conduit:/opt/mgweb/mapped -v /home/pi/ydb130:/opt/yottadb rtweed/mgweb-rpi
+
+It will now persist any YottaDB data into this mapped host directory, so it will be there 
+again each time you restart the Container.
+
+
+### Stopping the Container
+
+The Container's startup script sets up traps to detect *SIGINT* and *SIGTERM* signals.  These
+are triggered if:
+
+- you press CTRL&C when running the Container in a foreground, interactive session
+
+= you invoke the *docker stop* command.
+
+When these are triggered, the Container automatically stops Apache which, in turn,
+makes *mg_web* disconnect the Apache Worker Process(es) from the YottaDB API interface.
+
+This ensures an orderly shutdown, preventing any potential YottaDB database 
+corruption or data loss.
+
 
 
 ## License
