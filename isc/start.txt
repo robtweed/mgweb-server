@@ -1,0 +1,5 @@
+zn "%SYS"
+d ^%zmgsi
+d start^%zmgsi(0)
+w "mg_web listener has started on internal port 7041",!
+h

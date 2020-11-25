@@ -1,6 +1,6 @@
-IRIS for Windows^MAC^mgweb-server routines^~Format=IRIS.S~^RAW
-%RO on 17 Nov 2020   9:31 AM
-%zmgweb^MAC^^65700,34094.012007^0
+IRIS for Windows^MAC^mg-web back-end routines^~Format=IRIS.S~^RAW
+%RO on 25 Nov 2020  10:23 AM
+%zmgweb^MAC^^65708,35280.786167^0
 %zmgweb ; mg-web M back-end main interface
  ;
  ;----------------------------------------------------------------------------
@@ -141,7 +141,7 @@ header(headers)  ;
   ;
 .
 
-%zmgwebJWT^MAC^^65699,66707.392442^0
+%zmgwebJWT^MAC^^65708,37367.129781^0
 mgwebJWT ; mg-web M back-end: JSON Web Token Functions
  ;
  ;----------------------------------------------------------------------------
@@ -168,7 +168,7 @@ mgwebJWT ; mg-web M back-end: JSON Web Token Functions
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 16 November 2020
+ ; 25 November 2020
  ;
  QUIT
  ;
@@ -200,7 +200,7 @@ getIssuer() ;
  QUIT iss
  ;
 createJWT(payload,expiry,jwtSecret)
- n data,hashedData,header,signature
+ n data,hashedData,header
  ;
  i '$d(payload("iss")) s payload("iss")=$$getIssuer()
  i $g(expiry) s payload("exp")=$$getExpiryTime(expiry)
@@ -209,15 +209,8 @@ createJWT(payload,expiry,jwtSecret)
  s header=$$base64UrlEncode($$jwtHeader())
  s data=$$arrayToJSON^%zmgwebUtils("payload")
  s data=$$base64UrlEncode(data)
- ;w data,!
  s data=header_"."_data
- s hashedData=$$hash(data,jwtSecret)
- i $zv["GT.M" d
- . s signature=hashedData
- e  d
- . s signature=$$base64UrlEncode(hashedData)
- ;w signature,!
- QUIT data_"."_signature
+ QUIT data_"."_$$hash(data,jwtSecret)
  ;
 decodeJWT(jwt) ;
  n hashedPayload,payload
@@ -368,9 +361,8 @@ getExpiryTime(expiry) ;
  QUIT exp
  ;
 .
-.
 
-%zmgwebUtils^MAC^^65700,32986.2279^0
+%zmgwebUtils^MAC^^65708,35353.103437^0
 %zmgwebUtils ; mg-web M back-end utilities
  ;
  ;----------------------------------------------------------------------------
@@ -397,7 +389,7 @@ getExpiryTime(expiry) ;
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 17 November 2020
+ ; 20 November 2020
  ;
  QUIT
  ;

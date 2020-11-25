@@ -24,7 +24,7 @@ mgwebJWT ; mg-web M back-end: JSON Web Token Functions
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 16 November 2020
+ ; 25 November 2020
  ;
  QUIT
  ;
@@ -56,7 +56,7 @@ getIssuer() ;
  QUIT iss
  ;
 createJWT(payload,expiry,jwtSecret)
- n data,hashedData,header,signature
+ n data,hashedData,header
  ;
  i '$d(payload("iss")) s payload("iss")=$$getIssuer()
  i $g(expiry) s payload("exp")=$$getExpiryTime(expiry)
@@ -65,15 +65,8 @@ createJWT(payload,expiry,jwtSecret)
  s header=$$base64UrlEncode($$jwtHeader())
  s data=$$arrayToJSON^%zmgwebUtils("payload")
  s data=$$base64UrlEncode(data)
- ;w data,!
  s data=header_"."_data
- s hashedData=$$hash(data,jwtSecret)
- i $zv["GT.M" d
- . s signature=hashedData
- e  d
- . s signature=$$base64UrlEncode(hashedData)
- ;w signature,!
- QUIT data_"."_signature
+ QUIT data_"."_$$hash(data,jwtSecret)
  ;
 decodeJWT(jwt) ;
  n hashedPayload,payload

@@ -1,0 +1,9 @@
+d $system.OBJ.Load("/home/irisowner/mgweb/mgweb-conduit/mgwebConduit.ro","ck")
+zn "%SYS"
+d $system.OBJ.Load("/home/irisowner/mgweb/mgweb-server/isc/zmgweb.ro","ck")
+d $system.OBJ.Load("/home/irisowner/mgweb/mgsi/isc/zmgsi_isc.ro","ck")
+w "mg_web, mgweb-server and mgweb-conduit have been installed",!
+d ^%zmgsi
+d start^%zmgsi(0)
+w "mg_web listener has started on internal port 7041",!
+h
