@@ -742,6 +742,8 @@ Note the volume mapping:
 
         -v /home/ubuntu/mgweb:/home/irisowner/mgweb
 
+Change this to match the directory on your host system
+
 Note also the port mapping for *mg_web*:
 
         -p 9094:7041
@@ -749,13 +751,12 @@ Note also the port mapping for *mg_web*:
 Make sure the *mgweb.conf* file on your *mgweb-server* Container is 
 configured to access IRIS on the external mapped *mg_web* port (eg 9094).
 
-Change this to match the directory on your host system
 
 5) Shell into the IRIS Container:
 
         docker exec -it my-iris bash
 
-6) Run the ObjectScript installation script:
+6) Run the ObjectScript installation script that is included in the cloned *mgweb-server* repository:
 
         iris session IRIS < mgweb/mgweb-server/isc/install.txt
 
@@ -769,7 +770,8 @@ Demonstration application in your IRIS Container.
 
 
 If you want to set up a non-Dockerised IRIS system, take a look at the
-*install.txt* ObjectScript file.  Basically you just need to
+[*install.txt*](https://github.com/robtweed/mgweb-server/blob/master/isc/install.txt)
+ ObjectScript file.  Basically you just need to
 install the *mgsi* and *mgweb-server* ObjectScript routines from the
  *zmgwsi_isc.ro* and *zmgweb.ro* files that you find in the cloned
 Github repositories, and
