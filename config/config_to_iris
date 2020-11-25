@@ -1,3 +1,5 @@
+cp /opt/mgweb/mgweb.conf /opt/mgweb/mgweb.conf.bak
 sed -i '21,28d' /opt/mgweb/mgweb.conf
 sed -i 's/type YottaDB/type IRIS/g' /opt/mgweb/mgweb.conf
 sed -i "/type IRIS/a\ host $1\n tcp_port 7041\n username _SYSTEM\n password $2\n namespace USER" /opt/mgweb/mgweb.conf
+/opt/mgweb/restart
