@@ -1,7 +1,7 @@
 timeout 30
 log_level eftw
 <cgi>
- HTTP*
+  HTTP*
   AUTH_PASSWORD       
   AUTH_TYPE     
   CONTENT_TYPE
@@ -16,7 +16,7 @@ log_level eftw
   SERVER_PORT
   SERVER_SOFTWARE
 </cgi>
-<server local>
+<server internal>
  type YottaDB
  path /usr/local/lib/yottadb/r130
  <env>
@@ -27,8 +27,19 @@ log_level eftw
    ydb_ci=/usr/local/lib/yottadb/r130/zmgsi.ci
  </env>
 </server>
-
+<server iris0>
+ type IRIS
+ host 192.168.1.100
+ tcp_port 7041
+ username _SYSTEM
+ password SYS
+ namespace USER
+</server>
 <location /api>
  function api^%zmgweb
- servers local
+ servers internal
+</location>
+<location /mgweb>
+ function api^%zmgweb
+ servers internal
 </location>

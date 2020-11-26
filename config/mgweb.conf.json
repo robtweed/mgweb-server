@@ -1,0 +1,51 @@
+{
+  "timeout": 30,
+  "log_level": "eftw",
+  "cgi": [
+    "HTTP*",
+    "AUTH_PASSWORD",
+    "AUTH_TYPE",
+    "CONTENT_TYPE",
+    "GATEWAY_INTERFACE",
+    "PATH_TRANSLATED",
+    "REMOTE_ADDR",
+    "REMOTE_HOST",
+    "REMOTE_IDENT",
+    "REMOTE_USER",
+    "PATH_INFO",
+    "SERVER_NAME",
+    "SERVER_PORT",
+    "SERVER_SOFTWARE"
+  ],
+  "servers": {
+    "internal": {
+      "type": "YottaDB",
+      "path": "/usr/local/lib/yottadb/r130",
+      "env": {
+        "ydb_dir": "/opt/yottadb",
+        "ydb_rel": "r1.30_x86_64",
+        "ydb_gbldir": "/opt/yottadb/yottadb.gld",
+        "ydb_routines": "/opt/mgweb/m /opt/mgweb/mapped /usr/local/lib/yottadb/r130/libyottadbutil.so",
+        "ydb_ci": "/usr/local/lib/yottadb/r130/zmgsi.ci"
+      }
+    },
+    "iris0": {
+      "type": "IRIS",
+      "host": "192.168.1.100",
+      "tcp_port": 7041,
+      "username": "_SYSTEM",
+      "password": "SYS",
+      "namespace": "USER"
+    }
+  },
+  "locations": {
+    "/api": {
+      "function": "api^%zmgweb",
+      "servers": ["internal"]
+    },
+    "/mgweb": {
+      "function": "api^%zmgweb",
+      "server": "internal"
+    }
+  }
+}

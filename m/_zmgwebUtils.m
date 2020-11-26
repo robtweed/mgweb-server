@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 20 November 2020
+ ; 26 November 2020
  ;
  QUIT
  ;
@@ -38,6 +38,7 @@ start ;
  i $$getJWTSecret^%zmgwebJWT()
  i $$setJWTIssuer()
  i $$buildAPIs()
+ i $$build^%zmgwebCfg()
  QUIT
  ;
 response(res) ;
@@ -71,8 +72,9 @@ buildAPIs(filename) ;
   ;
 readJSONFile(filename,array) ;
  ;
- k array,io,json,line,ok,%zt
+ n io,json,line,ok,%zt
  ;
+ k array
  i $zv'["GT.M" d  QUIT ok
  . ; equivalent logic for Cache/IRIS...
  . ;
@@ -95,6 +97,7 @@ readJSONFile(filename,array) ;
 eoReadJSONFile ;
  c filename u io
  i $zv'["GT.M" s $zt=%zt
+ s json=$tr(json,$c(13),"")
  i $$parseJSON(json,.array)
  QUIT 1
   ;
@@ -115,19 +118,24 @@ deleteNotExists
  QUIT
  ;
 openNewFile(filepath)
- i $zv["GT.M" d
- . o filepath:(noreadonly:variable:newversion:exception="g openNewFileNotExists") 
- e  d
- . o filepath:"rw"
+ n ok
+ s ok=0
+ i $zv["GT.M" d  QUIT ok
+ . o filepath:(noreadonly:variable:newversion:exception="g openNewFileNotExists")
+ . s ok=1 
+ e  d  QUIT ok
+ . o filepath:"rw" i  s ok=1
  QUIT 1
  ;
 openNewFileNotExists
- QUIT 0
+ QUIT
  ;
 openFile(filepath)
  n ok
- i $zv["GT.M" d
+ i $zv["GT.M" d  QUIT ok
+ . s ok=0
  . o filepath:(readonly:exception="g openFileNotExists")
+ . s ok=1
  e  d  QUIT ok
  . s ok=1
  . o filepath:"r":0 e  s ok=0
@@ -135,7 +143,7 @@ openFile(filepath)
  ;
 openFileNotExists
  s $zt=""
- QUIT 0
+ QUIT
  ;
 arrayToJSON(name)
  n subscripts
@@ -255,7 +263,7 @@ parseJSON(jsonString,propertiesArray)
  QUIT ""
  ;
 parseJSONObject(buff,subs)
- n c,error,name,stop,subs2,value,x
+ n c,error,name,stop,subs2,value
  s stop=0,name="",error=""
  f  d  q:stop
  . s c=$e(buff,1)
@@ -265,7 +273,7 @@ parseJSONObject(buff,subs)
  . i c="}" d  q
  . . s stop=1
  . i c=":" d  q
- . . n subs2
+ . . n subs2,x
  . . s value=$$getJSONValue(.buff)
  . . d  q:stop
  . . . i value="" q
