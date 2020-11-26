@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 17 November 2020
+ ; 26 November 2020
  ;
  QUIT
  ;
@@ -34,6 +34,7 @@ ok() ;
 ylink ;
  i $$ok^%zmgwebUtils()
  i $$ok^%zmgwebJWT()
+ i $$ok^%zmgwebCfg()
  QUIT
  ;
 
