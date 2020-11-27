@@ -1,5 +1,5 @@
 IRIS for Windows^MAC^mg-web back-end routines^~Format=IRIS.S~^RAW
-%RO on 26 Nov 2020   4:07 PM
+%RO on 27 Nov 2020   2:32 PM
 %zmgweb^MAC^^65709,57908.412675^0
 %zmgweb ; mg-web M back-end main interface
  ;
@@ -474,7 +474,7 @@ getExpiryTime(expiry) ;
  ;
 .
 
-%zmgwebUtils^MAC^^65709,57967.073558^0
+%zmgwebUtils^MAC^^65710,52290.677541^0
 %zmgwebUtils ; mg-web M back-end utilities
  ;
  ;----------------------------------------------------------------------------
@@ -501,7 +501,7 @@ getExpiryTime(expiry) ;
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 26 November 2020
+ ; 27 November 2020
  ;
  QUIT
  ;
@@ -515,6 +515,10 @@ start ;
  i $$getJWTSecret^%zmgwebJWT()
  i $$setJWTIssuer()
  i $$buildAPIs()
+ i $$build^%zmgwebCfg()
+ QUIT
+ ;
+reconfigure ;
  i $$build^%zmgwebCfg()
  QUIT
  ;
