@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 26 November 2020
+ ; 27 November 2020
  ;
  QUIT
  ;
@@ -38,6 +38,10 @@ start ;
  i $$getJWTSecret^%zmgwebJWT()
  i $$setJWTIssuer()
  i $$buildAPIs()
+ i $$build^%zmgwebCfg()
+ QUIT
+ ;
+reconfigure ;
  i $$build^%zmgwebCfg()
  QUIT
  ;
