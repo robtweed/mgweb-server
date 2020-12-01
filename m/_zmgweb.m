@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 26 November 2020
+ ; 01 December 2020
  ;
  QUIT
  ;
@@ -79,15 +79,70 @@ api(%cgi,%var,%sys) ; mg_web handler for URLs matching /api/*
  ;m ^trace($h,"req")=req
  QUIT @call
  ;
+response(res) ;
+ QUIT $$response^%zmgwebUtils(.res)
+ ;
 notFound() ;
   ;
-  n content,crlf,header
+  n errors
   ;
+  s errors("error")="Resource not found"
+  QUIT $$errorResponse(.errors,404)
+  ;
+errorResponse(errors,statusCode,statusText) ;
+  ;
+  n crlf,header,json,status
+  ;
+  i '$d(^%zmgweb("errorCodes")) d
+  . s ^%zmgweb("errorCodes",400)="Bad Request"
+  . s ^%zmgweb("errorCodes",401)="unauthorized"
+  . s ^%zmgweb("errorCodes",402)="Payment Required"
+  . s ^%zmgweb("errorCodes",403)="Forbidden"
+  . s ^%zmgweb("errorCodes",404)="Not Found"
+  . s ^%zmgweb("errorCodes",405)="Method Not Allowed"
+  . s ^%zmgweb("errorCodes",406)="Not Acceptable"
+  . s ^%zmgweb("errorCodes",407)="Proxy Authentication Required"
+  . s ^%zmgweb("errorCodes",408)="Request Timeout"
+  . s ^%zmgweb("errorCodes",409)="Conflict"
+  . s ^%zmgweb("errorCodes",410)="Gone"
+  . s ^%zmgweb("errorCodes",411)="Length Required"
+  . s ^%zmgweb("errorCodes",412)="Precondition Failed"
+  . s ^%zmgweb("errorCodes",413)="Payload Too Large"
+  . s ^%zmgweb("errorCodes",414)="URI Too Long"
+  . s ^%zmgweb("errorCodes",415)="Unsupported Media Type"
+  . s ^%zmgweb("errorCodes",416)="Range Not Satisfiable"
+  . s ^%zmgweb("errorCodes",417)="Expectation Failed"
+  . s ^%zmgweb("errorCodes",418)="I'm a teapot"
+  . s ^%zmgweb("errorCodes",421)="Misdirected Request"
+  . s ^%zmgweb("errorCodes",422)="Unprocessable Entity"
+  . s ^%zmgweb("errorCodes",423)="Locked"
+  . s ^%zmgweb("errorCodes",424)="Failed Dependency"
+  . s ^%zmgweb("errorCodes",425)="Too Early"
+  . s ^%zmgweb("errorCodes",426)="Upgrade Required"
+  . s ^%zmgweb("errorCodes",428)="Precondition Required"
+  . s ^%zmgweb("errorCodes",429)="Too Many Requests"
+  . s ^%zmgweb("errorCodes",431)="Request Header Fields Too Large"
+  . s ^%zmgweb("errorCodes",451)="Unavailable For Legal Reasons"
+  . s ^%zmgweb("errorCodes",500)="Internal Server Error"
+  . s ^%zmgweb("errorCodes",501)="Not Implemented"
+  . s ^%zmgweb("errorCodes",502)="Bad Gateway"
+  . s ^%zmgweb("errorCodes",503)="Service Unavailable"
+  . s ^%zmgweb("errorCodes",504)="Gateway Timeout"
+  . s ^%zmgweb("errorCodes",505)="HTTP Version Not Supported"
+  . s ^%zmgweb("errorCodes",506)="Variant Also Negotiates"
+  . s ^%zmgweb("errorCodes",507)="Insufficient Storage"
+  . s ^%zmgweb("errorCodes",508)="Loop Detected"
+  . s ^%zmgweb("errorCodes",510)="Not Extended"
+  . s ^%zmgweb("errorCodes",511)="Network Authentication Required"
+  ;
+  i '$d(statusCode) s statusCode=422
+  i '$d(statusText) s statusText=$g(^%zmgweb("errorCodes",statusCode))
+  i '$d(statusText) s statusText="Unprocessable Entity"
+  s json=$$arrayToJSON^%zmgwebUtils("errors")
   s crlf=$c(13,10)
-  s header="HTTP/1.1 404 Not Found"_crlf
+  s header="HTTP/1.1 "_statusCode_" "_statusText_crlf
   s header=header_"Content-type: application/json"_crlf_crlf
-  s content="{""error"":""Resource not found""}"
-  QUIT header_content
+  QUIT header_json
   ;
 parseRequest(%cgi,%var,req) ;
   ;
