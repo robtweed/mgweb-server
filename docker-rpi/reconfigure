@@ -1,0 +1,7 @@
+#!/bin/bash
+
+export ydb_gbldir=/opt/yottadb/yottadb.gld
+./ydb_run reconfigure^%zmgwebUtils
+
+/etc/init.d/apache2 restart
+echo "mg_web Reconfigured and Apache restarted"

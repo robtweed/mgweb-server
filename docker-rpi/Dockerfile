@@ -3,7 +3,7 @@
 # Dockerised version of mg_web with YottaDB, using Apache
 
 # M/Gateway Developments Ltd
-# 24 November 2020
+# 27 November 2020
 
 FROM ubuntu:18.04
 
@@ -38,7 +38,7 @@ WORKDIR /opt/mgweb
 
 # Get mg-web
 
-RUN git clone https://github.com/chrisemunt/mg_web \
+RUN git clone https://github.com/chrisemunt/mg_web  \
  && cp /opt/mgweb/mg_web/src/*.h /opt/mg_web \
  && cp /opt/mgweb/mg_web/src/*.c /opt/mg_web \
  && cp /opt/mgweb/mg_web/src/apache/* /opt/mg_web \
@@ -53,14 +53,16 @@ RUN cd /opt/mg_web \
 
 COPY . /opt/mgweb
 RUN sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb \
- && sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb_run \
+ && sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb_run  \
  && sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb_run_temp \
  && dos2unix /opt/mgweb/* \
+ && mv /opt/mgweb/index.html /var/www/html \
  && chmod +x /opt/mgweb/ydb \
  && chmod +x /opt/mgweb/ydb_run \
  && chmod +x /opt/mgweb/ydb_run_temp \
  && chmod +x /opt/mgweb/start \
  && chmod +x /opt/mgweb/stop \
+ && chmod +x /opt/mgweb/reconfigure \
  && chmod +x /opt/mgweb/restart
 
 # Fetch the generic mg_web server repository
@@ -69,9 +71,10 @@ RUN sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb \
 
 RUN git clone https://github.com/robtweed/mgweb-server /opt/mgweb/server \
   && mv /opt/mgweb/server/m/* /opt/mgweb/m/ \
-  && mv /opt/mgweb/server/config/mgweb.conf-yottadb-apache /opt/mgweb/mgweb.conf \
+  # && mv /opt/mgweb/server/config/mgweb.conf-yottadb-apache /opt/mgweb/mgweb.conf \
+  && mv /opt/mgweb/server/config/mgweb.conf.json /opt/mgweb/mgweb.conf.json \
   && mv /opt/mgweb/server/config/mgweb.log /opt/mgweb \
-  && sed -i 's/x86_64/armv7l/g' /opt/mgweb/mgweb.conf \
+  && sed -i 's/x86_64/armv7l/g' /opt/mgweb/mgweb.conf.json \
   && chown www-data:www-data /opt/mgweb/* \
   && cp /opt/mgweb/server/apache/* /etc/apache2
 
@@ -85,15 +88,6 @@ RUN mkdir /tmp/tmp \
   && export ydb_gbldir=/opt/yottadb/yottadb.gld \
   && /usr/local/lib/yottadb/r130/mumps -run ^GDE < /opt/mgweb/gde.txt \
   && /usr/local/lib/yottadb/r130/mupip create
-
-# Install the mg_WebComponents version of the RealWorld Client
-
-RUN git clone https://github.com/robtweed/wc-conduit /opt/mgweb/wc-conduit \
-  && mv /opt/mgweb/wc-conduit/components /var/www/html/ \
-  && mv /opt/mgweb/wc-conduit/conduit-wc /var/www/html/
-
-RUN git clone https://github.com/robtweed/mg-webComponents /opt/mgweb/mg-webComponents \
-  && mv /opt/mgweb/mg-webComponents/mg-webComponents.js /var/www/html/
 
 # Install and configure the network mgsi interface code to allow
 # network access to YottaDB (default setup uses
@@ -127,8 +121,6 @@ RUN chown -R www-data:www-data /opt/mgweb/m \
 
 RUN rm /opt/mgweb/Dockerfile \
   && rm -r /opt/mgweb/gde.txt \
-  && rm -r /opt/mgweb/wc-conduit \
-  && rm -r /opt/mgweb/mg-webComponents \
   && rm -r /opt/mgweb/server
 
 RUN updatedb
