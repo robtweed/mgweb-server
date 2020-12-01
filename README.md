@@ -63,7 +63,7 @@ are:
   - ^%zmgwebJWT
 
 
-# The *mg_web Server Appliances for Linux and Raspberry Pi
+# The *mg_web Server Appliance*s for Linux and Raspberry Pi
 
 All the components described in the previous chapter above are pre-installed and configured for you if you use the Docker Container versions of *mgweb-server*, otherwise known as the *mg_web Server Appliance*.
 
@@ -78,7 +78,7 @@ The main aim of *mgweb-server* is to provide a simple and hopefully intuitive pa
 or "recipe book" for developing JSON-based REST APIs with a Cach&eacute;, IRIS or
 YottaDB database.
 
-Read [the *mgweb-server Development Pattern Guide](./DEV-PATTERN.md) for details of the
+Read [the *mgweb-server* Development Pattern Guide](./DEV-PATTERN.md) for details of the
 elements that make up this pattern.
 
 Alternatively (or additionally), take 
