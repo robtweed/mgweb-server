@@ -1,4 +1,4 @@
-mgwebJWT ; mg-web M back-end: JSON Web Token Functions
+%zmgwebJWT ; mg-web M back-end: JSON Web Token Functions
  ;
  ;----------------------------------------------------------------------------
  ;| zmgweb: mg-web Back-end Support Routines                                 |
@@ -24,7 +24,7 @@ mgwebJWT ; mg-web M back-end: JSON Web Token Functions
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 25 November 2020
+ ; 2 December 2020
  ;
  QUIT
  ;
@@ -92,6 +92,14 @@ authenticateJWT(jwt,jwtSecret,failReason) ;
  . s isValid=0
  . s failReason="JWT has expired" 
  QUIT isValid
+ ;
+getClaims(jwt,claims) ;
+ ;
+ n json
+ ;
+ k claims
+ s json=$$decodeJWT(jwt)
+ QUIT $$parseJSON^%zmgwebUtils(json,.claims)
  ;
 getClaim(jwt,claim) ;
  n arr,claims,json

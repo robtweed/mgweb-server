@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 27 November 2020
+ ; 2 December 2020
  ;
  QUIT
  ;
@@ -546,6 +546,37 @@ emailTests ;
   ;
   QUIT
   ;
+hashPassword(password) ;
+ ;
+ n hash
+ ;
+ i $zv["GT.M" d
+ . s hash=$$bcryptHash(password)
+ e  d
+ . n salt
+ . s salt=##class(%SYSTEM.Encryption).GenCryptRand(32)
+ . s hash=##class(%SYSTEM.Encryption).PBKDF2(password,20,salt,32,512)
+ . s hash=##class(%SYSTEM.Encryption).Base64Encode(salt)_"$32$"_##class(%SYSTEM.Encryption).Base64Encode(hash)
+ ;
+ QUIT hash
+ ;
+verifyPassword(password,hash) ;
+ ;
+ n ok
+ ;
+ i $zv["GT.M" d
+ . s ok=$$bcryptCompare(password,hash)
+ e  d
+ . n hash2,salt
+ . s salt=$p(hash,"$32$",1)
+ . s hash=$p(hash,"$32$",2) 
+ . s salt=##class(%SYSTEM.Encryption).Base64Decode(salt)
+ . s hash2=##class(%SYSTEM.Encryption).PBKDF2(password,20,salt,32,512)
+ . s hash2=##class(%SYSTEM.Encryption).Base64Encode(hash2)
+ . s ok=(hash=hash2)
+ ;
+ QUIT ok
+ ;
 bcryptHash(password) ;
  ;
  n command,filename,hash,io,msg,name,ok,username

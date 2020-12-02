@@ -789,13 +789,155 @@ If you're using a PUT request to edit/update a database record, its JSON payload
 
 ## Step 10: Using JSON Web Tokens with *mgweb-server*
 
-To be continued...
+Neither *mg_web* nor *mgweb-server* provide any built-in server-side session management capabilities.  You can, of course, write your own session mechanism if you wish.
 
-## Step 11: Using with IRIS
+These days, however, a common alternative approach is to use JSON Web Tokens (JWTs).  A JWT is essentially a digitally-signed JSON string.  JWTs can be used to implement a session management mechanism, but where the session information is stored as properties (known as *claims) within the JWT, and where the JWT is retained on the client rather than the server.  If used with a web browser, JWTs are typically stored as cookies or, provided care is taken over security, one of the browser's integrated databases such as IndexedDB.
+
+If you decide to use JWTs with your *mgweb-server* applications, it will be up to you how they are used, both on the client- and server- sides.  However, *mgweb-server* provides you with a set of utility functions to allow you to create, modify, decode and authenticate JWTs within your M handler logic.  These functions will work with both IRIS and YottaDB.
+
+### Creating a JWT
+
+JWTs can be created by using the function:
+
+        set jwt=$$createJWT^%zmgwebJWT(.payload,expiryTime)
+
+where:
+
+- **payload**: local M array, passed by reference, containing claims.  This array can have any numbers of subscripts within it.  The array is converted to the equivalent JSON structure within the JWT.
+
+- **expiryTime**: The number of seconds after which the JWT will be deemed to have expired, and therefore unusable by the back-end
+
+The *createJWT()* function will sign the JWT by using the JWT secret value that is created and stored in the *^%zmgweb* Global when the *mg_web Server Appliance* is first started.
+
+The JWT can then be returned to the client as one of the properties within your handler's JSON response, eg:
+
+        s claims("username")="rtweed"
+        s claims("email")="rob@example.com"
+        s res("jwt")=$$createJWT^%zmgwebJWT(.claims,86400)
+        s res("ok")="true"
+        QUIT $$response^%zmgweb(.res)
+
+In this example, the client/browser would receive:
+
+        {
+          "ok": true,
+          "jwt": "eyJ0eXAiOiJKV1Q...etc"
+        }
+        
+
+### Returning a JWT with your REST Requests
+
+JWTs are normally sent as part of your REST requests by including them in the *Authorization* HTTP Request Header.  By convention, the value of this header is prefixed with the text *Token* or *Bearer*.  If the latter is used, the header value is known as a *Bearer Token*.  For example, your REST Request should include the HTTP Header:
+
+        Authorization: Token eyJ0eXAiOiJKV1Q...etc
+
+or:
+        Authorization: Bearer eyJ0eXAiOiJKV1Q...etc
+
+For your back-end M handler these are somewhat irrelevant semantics.  By the time your M handler is invoked, *mg_web* and then *mgweb_server* will have taken their turns at parsing out this header, and you'll find the value of the *Authorization* header in:
+
+        req("headers","authorization")
+
+You'll need to remove any prefix text, so typically you would do this:
+
+        s jwt=$p(req("headers","authorization"),"Token ",2)
+
+
+or, since a JWT string should never include a space character, simply:
+
+        s jwt=$p(req("headers","authorization")," ",2)
+
+
+### Authenticating a JWT
+
+If a REST requests sends a JWT, you can use it as a means of authentication.  When the JWT was originally created by one of your handler methods, it will have been digitally signed using a secret string that only your M server should know.  When you receive a JWT back, you can check its digital signature and confirm that it matches what you'd expect based on the JWT's content.  You also need to check the JWT's expiry date/time.  If the JWT has expired, you should refuse to accept it and return an error response to the REST Client.
+
+The JWT's digital signature also means that a JWT's contents cannot be tampered with by anyone, for example within the user's browser.  Although a JWT's payload can be decoded and read by anyone, its digital signature is unique to the JWT's payload content at the time it was created.  Any attempt to modify a JWT's payload structure will render the digital signature invalid.
+
+*mgweb-server* provides you with a single function that will perform all the necessary validation you'll need in your M handler functions:
+
+        $$authenticateJWT^%zmgwebJWT(jwt [,secret,.failReason])
+
+The function returns a value of 1 if the JWT was authenticated successfully, 0 if not.
+
+The second argument should be left as an empty string, in which case the JWT Secret stored in the *^%zmgweb* Global will be used to check the JWT's digital signature.
+
+The third optional argument, if passed by reference, will allow you to see the reason for any authentication failure, if that is important for you (or the REST Client) to know.  Failure reasons include:
+
+- **Invalid signature**: the digital signature of the incoming JWT is not what would be expected.  Either the JWT is not one created by you, or it has been tampered with;
+
+- **JWT has expired**: the JWT's signature was valid, but it has passed its expiry date and therefore should not be used.
+
+
+Examples:
+
+
+- simple true/false check:
+
+        set isValidJWT=$$authenticateJWT^%zmgwebJWT(jwt)
+
+
+- returning the failure reason as an error to the REST Client:
+
+        if '$$authenticateJWT^%zmgwebJWT(jwt,"",.reason) do QUIT $$errorResponse(.errors)
+        . s errors("error","jwt")=reason
+
+  which, for example, would return a 422 error with a payload of:
+
+        {"error": {"jwt": "JWT has expired"}}
+
+
+### Getting Claims from the JWT
+
+When you created a JWT, you will have defined a set of claims (or properties) that are included in its payload.  When you receive a REST request that includes a JWT, you will usually want to extract one or more of those values from the payload, since they will likely provide additional state information you'll need in order to process the incoming request.
+
+Having first authenticated the JWT to ensure that it is valid (see above), you'll therefore use the *mgweb-server* function:
+
+        set error=$$getClaims^%zmgwebJWT(jwt,.claims)
+
+If the JWT argument is not a valid JSON string, the function will return a value of *invalid JSON*.  Otherwise, if successful, it will return an empty string, and the M local array - *claims* - passed by reference as the second argument, will contain the JWT's payload values, for example:
+
+        claims("email")="rob@example.com"
+        claims("username")="rtweed"
+        claims("exp")=1610368312
+        claims("iss")="qewd-conduit"
+
+If you simply want the value of a single claim, and if that claim is a first-level JSON property, you can use this instead:
+
+        set value=$$getClaim^%zmgwebJWT(jwt,claimName)
+
+for example:
+
+        set email=$$getClaim^%zmgwebJWT(jwt,"email")
+
+
+### Other Optional JWT Functions
+
+The JWT handling functions described above cover the majority of your likely needs, but there are a number of other functions available to you that you might find useful.  These are summarised below:
+
+- get the value of the JWT Secret (as stored in the *^%zmgweb* Global:
+
+        set secret=$$getJWTSecret^%zmgwebJWT()
+
+
+- get the value of the JWT Issuer (as stored in the *^%zmgweb* Global:
+
+        set issuer=$$getIssuer^%zmgwebJWT()
+
+- set/reser the value of the JWT Issuer (updating the *^%zmgweb* Global:
+
+        s status=$$setIssuer^%zmgwebJWT(issuerValue)
+
+  The status returnValue will always be 1
+
+
+
+
+## Handling Passwords securely
 
 ## Step 12: Adding a front-end (mapping /var/www/html)
 
 ## Step 13: Try it with mgweb-conduit
 
 
-
+Copy of this tutorial for IRIS setup
