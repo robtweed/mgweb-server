@@ -1,5 +1,5 @@
 IRIS for Windows^MAC^mg-web back-end routines^~Format=IRIS.S~^RAW
-%RO on 02 Dec 2020  11:48 AM
+%RO on 02 Dec 2020   3:20 PM
 %zmgweb^MAC^^65715,42331.087507^0
 %zmgweb ; mg-web M back-end main interface
  ;
@@ -537,7 +537,7 @@ getExpiryTime(expiry) ;
  ;
 .
 
-%zmgwebUtils^MAC^^65715,42248.71644^0
+%zmgwebUtils^MAC^^65715,55151.537429^0
 %zmgwebUtils ; mg-web M back-end utilities
  ;
  ;----------------------------------------------------------------------------
@@ -583,6 +583,10 @@ start ;
  ;
 reconfigure ;
  i $$build^%zmgwebCfg()
+ QUIT
+ ;
+buildRoutes ;
+ i $$buildAPIs()
  QUIT
  ;
 response(res) ;

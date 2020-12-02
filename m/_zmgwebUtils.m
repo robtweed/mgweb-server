@@ -45,6 +45,10 @@ reconfigure ;
  i $$build^%zmgwebCfg()
  QUIT
  ;
+buildRoutes ;
+ i $$buildAPIs()
+ QUIT
+ ;
 response(res) ;
  QUIT $$header^%zmgweb()_$$arrayToJSON("res")
  ;
