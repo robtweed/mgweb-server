@@ -3,7 +3,7 @@
 # Dockerised version of mg_web with YottaDB, using Apache
 
 # M/Gateway Developments Ltd
-# 1 December 2020
+# 2 December 2020
 
 FROM ubuntu:20.04
 
@@ -61,6 +61,7 @@ RUN dos2unix /opt/mgweb/* \
  && chmod +x /opt/mgweb/start \
  && chmod +x /opt/mgweb/stop \
  && chmod +x /opt/mgweb/reconfigure \
+ && chmod +x /opt/mgweb/build_routes \
  && chmod +x /opt/mgweb/restart
 
 # Fetch the generic mg_web server repository
@@ -72,8 +73,6 @@ RUN git clone https://github.com/robtweed/mgweb-server /opt/mgweb/server \
   # && mv /opt/mgweb/server/config/mgweb.conf-yottadb-apache /opt/mgweb/mgweb.conf \
   && mv /opt/mgweb/server/config/mgweb.conf.json /opt/mgweb/mgweb.conf.json \
   && mv /opt/mgweb/server/config/mgweb.log /opt/mgweb \
-  && mv /opt/mgweb/server/config/config_to_iris /opt/mgweb \
-  && chmod +x /opt/mgweb/config_to_iris \
   && chown www-data:www-data /opt/mgweb/* \
   && cp /opt/mgweb/server/apache/* /etc/apache2
 

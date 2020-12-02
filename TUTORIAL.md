@@ -2,6 +2,10 @@
 
 This tutorial will demonstrate, step-by-step, how to create a simple set of JSON-based REST APIs using the *mgweb-server* development pattern.  This tutorial will show you how to do this, using the Docker-based *mg_web Server Appliance*, running on either a Linux server or Raspberry Pi.
 
+You can find out further technical details about the 
+[*mg_web Server Appliance* Container's facilities and operations in this Guide](./APPLIANCE.md).
+
+
 ## Step 1: Pre-requisites
 
 You'll need to make sure that you have Docker installed on your server or Raspberry Pi.
@@ -156,19 +160,18 @@ This is, of course, because the directory is mapped from the host system - whate
 
 ## Step 6: Build the *routes* Global from the *routes.json* file
 
-Now, in the *mg_web Server Appliance*'s Docker *bash* shell process, open the YottaDB interactive shell and invoke the command *./ydb*.  You'll see the *YDB>* prompt appears:
+Now, in the *mg_web Server Appliance*'s Docker *bash* shell process, make sure you're in the default */opt/mgweb* directory, and then run the command:
+
+        cd /opt/mgweb
+        ./build_routes
+
+Let's check what's just happened.  Open the YottaDB interactive shell and invoke the command *./ydb*.  You'll see the *YDB>* prompt appears:
 
         root@262478d3c23a:/opt/mgweb# ./ydb
         
         YDB>
 
-Run the *mgweb-server* API builder function.  On successful completion it will return a value of *1*:
-
-        YDB> w $$buildAPIs^%zmgwebUtils()
-        
-        1
-
-Let's check what's happened.  Run the command *zwr ^%zmgweb* and you'll see the Global that has been created:
+Now, run the command *zwr ^%zmgweb* and you'll see the Global that has been created:
 
         YDB> zwr ^%zmgweb
 
@@ -543,20 +546,21 @@ On your host system, edit the *routes.json* file in the folder you've mapped int
           }
         ]
 
-Now rebuild the routing Global from this file.  In the terminal window process where you've shelled into the *mg_web Server Appliance*, do the following:
+Now rebuild the routing Global from this file.  In the terminal window process where you've shelled into the *mg_web Server Appliance*, re-run the *build_routes* command:
 
         cd /opt/mgweb
+        ./build_routes
+
+Let's check that it worked.  Enter the YottaDB shell by typing:
+
         ./ydb
 
-You'll now be in the YottaDB shell.  Then type:
 
-        YDB> w $$buildAPIs^%zmgwebUtils()
-
-It should return a value of 1.  Check that it worked:
+Then type:
 
         YDB> zwr ^%zmgweb
 
-You should see the two routes:
+You should now see the two routes:
 
         ^%zmgweb("routes","GET","/api/article/:slug/comment/:commentId")="getComment^myRestAPIs
 "
@@ -706,9 +710,8 @@ As before, we first add a new route to the *routes.json* file:
 Then rebuild the routing Global from within the *mg_web Server Appliance*'s shell, and restart Apache:
 
         cd /opt/mgweb
+        ./build_routes
         ./restart
-        ./ydb
-        YDB> w $$buildAPIs^%zmgwebUtils()
 
 
 Next, working in the host, add a function named *addPerson()* to the *myRestAPIs.m* routine file.  As before, initially we'll just return the contents of the incoming *req* array as a JSON response:

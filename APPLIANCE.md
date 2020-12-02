@@ -14,19 +14,22 @@ The Docker Containers for both Linux and Raspberry Pi pre-package the following 
 Both Containers also include the *mgweb-server* components that 
 configure mg_web and the *^%zmgweb* routines
 
-The *mgweb-server* Docker Containers are available from Docker Hub as:
+The *mgweb-server* Docker Containers (*aka* the *mg_web Server Appliance*) are available from Docker Hub as:
 
 - Linux: *rtweed/mgweb*
 - Raspberry Pi: *rtweed/mgweb-rpi*
 
-The *mgweb-server* Docker Container can also be quickly and simply 
+The *mg_web Server Appliance* can also be quickly and simply 
 reconfigured to use an external IRIS database instead of the 
 default YottaDB database.
 
 
-## Using the Containers
+## Using the *mg_web Server Appliance*
 
-The *mgweb-server* Containers are designed on the assumption that, 
+It is recommended that you follow 
+[this tutorial on using the *mg_web Server Appliance*](./TUTORIAL.md).
+
+The *mg_web Server Appliance* Containers are designed on the assumption that, 
 when you start the Container,
  you will map, to a pre-determined container volume, a host directory that contains all
 the resources that define your REST back-end:
@@ -150,33 +153,6 @@ From there, simply type:
         ./restart
 
 Apache will restart and you can resume using *mgweb-server*.
-
-
-## Try it Out with *mgweb-conduit*
-
-To get up and running quickly and see the Container in action, 
-clone the [*mgweb-conduit*](https://github.com/robtweed/mgweb-conduit)
-repository which implements the [RealWorld Conduit](https://github.com/gothinkster/realworld)
-back-end REST APIs using the *mgweb-server* pattern.
-
-You can then map it into the *mgweb-server* Container, for example:
-
-- Linux:
-
-        docker run -d --name mgweb --rm -p 3000:8080 -v /home/ubuntu/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb
-
-- Raspberry Pi:
-
-        docker run -d --name mgweb --rm -p 3000:8080 -v /home/pi/mgweb-conduit:/opt/mgweb/mapped rtweed/mgweb-rpi
-
-
-The routes defined in the *mgweb-conduit* folder will automatically
-be used within the Container, and the M handler functions defined in
-the *mgweb-conduit* folder will execute within the container's YottaDB 
-run-time environment.
-
-For more details, and to examine the *mgweb-conduit* API definitions and handler code, jump
-over to the [*mgweb-conduit* repository](https://github.com/robtweed/mgweb-conduit)
 
 
 ## Persisting your YottaDB Database Between Container Restarts

@@ -3,7 +3,7 @@
 # Dockerised version of mg_web with YottaDB, using Apache
 
 # M/Gateway Developments Ltd
-# 27 November 2020
+# 2 December 2020
 
 FROM ubuntu:18.04
 
@@ -63,6 +63,7 @@ RUN sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb \
  && chmod +x /opt/mgweb/start \
  && chmod +x /opt/mgweb/stop \
  && chmod +x /opt/mgweb/reconfigure \
+ && chmod +x /opt/mgweb/build_routes \
  && chmod +x /opt/mgweb/restart
 
 # Fetch the generic mg_web server repository

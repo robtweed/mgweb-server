@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export ydb_gbldir=/opt/yottadb/yottadb.gld
+./ydb_run buildRoutes^%zmgwebUtils
+
+echo "Your routes.json file has been processed and saved in the ^%zmgweb Global"
