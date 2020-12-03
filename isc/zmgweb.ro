@@ -1,5 +1,5 @@
 IRIS for Windows^MAC^mg-web back-end routines^~Format=IRIS.S~^RAW
-%RO on 02 Dec 2020   3:20 PM
+%RO on 03 Dec 2020   2:51 PM
 %zmgweb^MAC^^65715,42331.087507^0
 %zmgweb ; mg-web M back-end main interface
  ;
@@ -308,7 +308,7 @@ build(filename,mgwebConfPath) ;
  ;
 .
 
-%zmgwebJWT^MAC^^65715,42395.994268^0
+%zmgwebJWT^MAC^^65716,53447.773555^0
 %zmgwebJWT ; mg-web M back-end: JSON Web Token Functions
  ;
  ;----------------------------------------------------------------------------
@@ -335,7 +335,7 @@ build(filename,mgwebConfPath) ;
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 2 December 2020
+ ; 3 December 2020
  ;
  QUIT
  ;
@@ -363,7 +363,9 @@ getIssuer() ;
  n iss
  ;
  s iss=$g(^%zmgweb("jwt","iss"))
- i iss="" s iss="mg_web"
+ i iss="" d
+ . s iss="mg_web"
+ . d setIssuer(iss)
  QUIT iss
  ;
 createJWT(payload,expiry,jwtSecret)
