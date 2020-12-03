@@ -91,7 +91,7 @@ using the Dockerised *mg_web Server Appliance* version of *mgweb-server*.
 
 Although the *web_web Server Appliance* Containers include a pre-installed, pre-configured copy of the YottaDB database integrated with *mg_web*, you can also very quickly and simply reconfigure it to work with the IRIS Database Platform instead.
 
-Read [the *mg_web Server Appliance* IRIS Guide](./IRIS.md) for full details.
+Read [the *mg_web Server Appliance* IRIS Guide and Tutorial](./IRIS.md) for full details.
 
 ----------------
 # License

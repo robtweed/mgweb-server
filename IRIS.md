@@ -721,7 +721,7 @@ Notice also these two properties:
 
 The *path* property can be used to find out what the actual incoming *uri* path was, whilst the *path_template* property tells you the routing path that was matched by the incoming request.
 
-Knowing this information, we could change the logic of our *getComment* handler to find and fetch the corresponding comment text from the YottaDB database, eg, something like this (depending, of course, on the Globals used to maintain article and comment details):
+Knowing this information, we could change the logic of our *getComment* handler to find and fetch the corresponding comment text from the IRIS database, eg, something like this (depending, of course, on the Globals used to maintain article and comment details):
 
         getComment(req)
          new articleId,comment,commentId,slug
@@ -1087,4 +1087,213 @@ The JWT handling functions described above cover the majority of your likely nee
   The status returnValue will always be 1
 
 
+## Handling Passwords Securely
+
+One of the key parts of almost all back-end suites of REST APIs is a means of registering and authenticating users.  These days, of course, you may wish to offload that side of things to a third-party cloud-based service such as [Auth0](https://auth0.com/).  However, if you want or need to manage user authentication on your own system, you'll need to implement a secure way of storing and checking users' passwords.
+
+If so, *mgweb-server* includes two functions to assist you with this, saving you the effort of figuring out how to do it yourself.  The idea of these functions is:
+
+- to use a one-way encryption algorithm to process the user's password before it is stored in your user registration Global.
+
+- when a user attempts to log in, perform the same one-way encryption on their submitted password and see if it matches the one saved for the user in your user registration Global.
+
+For practical reasons, the encryption algorithm that is used within these functions differs between YottaDB and IRIS:
+
+- YottaDB uses the same 
+[*bcrypt* algorithm that is favoured by Auth0](https://auth0.com/blog/hashing-in-action-understanding-bcrypt/)
+
+- IRIS uses a salted PBKDF2 algorithm
+
+### Hashing a Password
+
+To encrypt, or hash, a password:
+
+        set hash=$$hashPassword^%zmgwebUtils(passwordString)
+
+The returned hashed value can be stored in the user registration Global.
+
+
+To validate a password, its hashed value should be compared with the stored hashed password value:
+
+        set status=$$verifyPassword^%zmgwebUtils(passwordString,hash)
+
+The returned status value is 1 if the hashed incoming *passwordString* matches the stored *hash* value.  If they don't match, a value of 0 is returned.
+
+
+## Adding a Front-end
+
+*mgweb-server* addresses only the server-side back-end of a set of REST APIs.  If you want or need to implement a front-end, eg a browser-based application, that uses the REST APIs for communication with the back-end, then you can use any available front-end framework you wish.
+
+Having created such a front-end to consume your back-end *mgweb-server* REST APIs, you'll need to make it available on a web server.  If you use CORS, then, of course, the front-end can be delivered by any web server.  However, you may decide that you want to deliver the front-end from the same Apache Web Server used by your *mg_web Server Appliance*.
+
+This is very simple to do - it's just a matter of mapping a host directory that contains your front-end resources (HTML, JavaScript and CSS files) to the internal directory used by Apache within the *mg_web Server Appliance* Container (*/var/www/html*).
+
+So, first create a directory on your host server or Raspberry Pi that will contain your front-end resources, eg:
+
+        /home/ubuntu/www
+
+When you start/restart your *mg_web Server Appliance* Container, add an extra volume mapping parameter that maps this host directory to the Container's */var/www/html* directory, eg:
+
+- Linux:
+
+        docker run -it --name mgweb --rm -p 3000:8080 -v /home/ubuntu/mgweb:/opt/mgweb/mapped -v /home/ubuntu/www:/var/www/html rtweed/mgweb
+
+- Raspberry Pi:
+
+        docker run -it --name mgweb --rm -p 3000:8080 -v /home/pi/mgweb:/opt/mgweb/mapped -v /home/pi/www:/var/www/html rtweed/mgweb-rpi
+
+
+Any files you now add to this new mapped host directory will now be able to be served up from Apache in the *mg_web Server Appliance*.  You can, of course, add sub-directories to this mapped directories, eg:
+
+        /home/ubuntu/www/js/app.js
+
+which could be fetched by a browser using:
+
+        http://192.168.1.100:3000/js/app.js
+
+By mapping the front-end directory in this way, you can do all your front-end development work directly on the host system (or Raspberry Pi) without having to do anything within the running *mg_web Server Appliance* Container.
+
+
+
+## Try your *mg_web Server Appliance* and IRIS with *mgweb-conduit*
+
+If you want to try out your *mg_web Server Appliance* with a pre-built example suite of REST APIs running on your IRIS system, you can install everything from the [mgweb-conduit](https://github.com/robtweed/mgweb-conduit) repository.
+
+*mgweb-conduit* is a full implementation of the REST back-end for the 
+[RealWorld Conduit](https://github.com/gothinkster/realworld)
+ application using *mg_web* to 
+[implement its APIs](https://github.com/gothinkster/realworld/tree/master/api).
+
+It therefore provides a good, ready-made example of how you can use *mg_web* to implement your own REST services, and to see the *mg_web Server Appliance* in action.
+
+### Setting up
+
+On your IRIS host system, clone the *mgweb-conduit* repository into the directory you created for mapping into the IRIS Container, eg *~/mgweb*:
+
+        cd ~/mgweb
+        git clone https://github.com/robtweed/mgweb-conduit
+
+You now need to:
+
+- (re)build the routing Global using this repository's *routes.json* file
+- import the ObjectScript routines that contain all the handler logic from this repository into IRIS
+
+Start an IRIS terminal session and do the following:
+
+        USER> d buildAPIs^%zmgwebUtils("/home/irisowner/mgweb/mgweb-conduit/routes.json")
+
+You can check that it's imported all the *mgweb-conduit* routes into the *^%zmgweb* Global:
+
+        USER> zw ^%zmgweb
+
+Next, import the handler routines:
+
+        USER> d $system.OBJ.Load("/home/irisowner/mgweb/mgweb-conduit/mgwebConduit.ro","ck")
+
+
+### Try it Out!
+
+That's all there is to it! The *mgweb-conduit* REST APIs are now ready to use.  In a browser, try a couple of simple ones.  Assuming your host system has an IP address of *192.168.1.100*:
+
+        http://192.168.1.100:3000/api/ping
+
+This should return a response of:
+
+       {pong: true}
+
+
+        http://192.168.1.100:3000/api/tags
+
+This should return a response of:
+
+       {tags: []}
+
+
+You can find out [more information here](https://github.com/robtweed/mgweb-conduit) 
+on how *mgweb-conduit* has been implemented to run on an M system using *mg_web*.  You'll
+find that it follows the standard *mgweb-server* development pattern as described earlier in this tutorial, so it should be straightforward for you to follow.
+
+
+### Add a RealWorld Application Client
+
+The idea of the RealWorld initiative is to have a single, non-trivial application specification, with both a pre-defined standard REST API specification and a standard user interface (UI) design.
+
+*mgweb-conduit* is providing you with an instance of the former, and, if you want, you could use it with any of the published 
+[RealWorld Application Client front-ends](https://github.com/gothinkster/realworld#frontends).
+
+There's another, unpublished front-end that you can use, designed to be much simpler than most others to install and configure, but which also adheres to the standard UI design: 
+[*wc-conduit*](https://github.com/robtweed/wc-conduit).  This is very quick and easy to install and get working with your *mg_web Server Appliance*, and can be used to exercise the full suite of *mgweb-conduit* REST APIs in a meaningful way.
+
+You can install *wc-conduit* and use it as the front-end to your *mgweb-conduit* REST APIs as follows.  The following instructions will work on both Linux and Raspberry Pi systems:
+
+#### Create a Directory for the Front-End Resources
+
+Note: you'll be doing the following steps on your *mg_web Server Appliance*.
+
+First, if you're currently running the *mg_web Server Appliance* Container, you should stop it now.
+
+Secondly, create a directory on your host server or Raspberry Pi that will be used to hold the *wc-conduit* UI resources and dependencies.  For example:
+
+        ~/conduit-ui
+
+#### Get the UI Installer Script
+
+Next, clone a repository called *mgweb-server-utils* into this new directory, eg:
+
+        cd ~/conduit-ui
+        git clone https://github.com/robtweed/mgweb-server-utils
+
+
+#### Make the UI Installer Script Executable
+
+        sudo chmod +x mgweb-server-utils/install_conduit_ui
+
+#### Run the UI Installer
+
+You're ready to use the script to install *wc-conduit* and its dependencies:
+
+        mgweb-server-utils/install_conduit_ui
+
+On completion, you can remove the *mgweb-server-utils* cloned repository:
+
+        sudo rm -r mgweb-server-utils
+
+Take a look at what's been installed in your *~/conduit-ui* directory:
+
+        ls -l
+
+        total 32
+        drwxr-xr-x 3 pi pi  4096 Dec  2 14:39 components
+        drwxr-xr-x 3 pi pi  4096 Dec  2 14:39 conduit-wc
+        -rw-r--r-- 1 pi pi   137 Dec  2 14:37 index.html
+        -rw-r--r-- 1 pi pi 18665 Dec  2 14:39 mg-webComponents.js
+
+
+#### Restart the *mg_web Server Appliance* with the Mapped UI Directory
+
+Now all you need to do is to restart your *mg_web Server Appliance* Container, this time also mapping your new UI directory into the Container's Apache web server root directory:
+
+
+- Linux:
+
+        docker run -it --name mgweb --rm -p 3000:8080 -v /home/ubuntu/mgweb-conduit:/opt/mgweb/mapped -v /home/ubuntu/conduit-ui:/var/www/html rtweed/mgweb
+
+- Raspberry Pi:
+
+        docker run -it --name mgweb --rm -p 3000:8080 -v /home/pi/mgweb-conduit:/opt/mgweb/mapped -v /home/pi/conduit-ui:/var/www/html rtweed/mgweb-rpi
+
+
+#### Try it Out!
+
+It should now be all ready for you to use in your browser.  
+
+Note: in order to prevent errors due to insufficient IRIS licenses being available, you should close any IRIS terminal sessions, Studio, System Management Portal or VS Code connections: the IRIS Community Edition Docker version allows only a very small number of concurrent IRIS jobs/processes.
+
+Assuming the IP address of your Linux server or Raspberry Pi is *192.168.1.100*, enter the following URL:
+
+        http://192.168.1.100:3000/conduit-wc/
+
+Make sure you add that forward-slash (/) at the end of the URL.  You should now see the RealWorld Conduit UI appearing and you're ready to run the application.  Of course, the back-end handlers for the Conduit REST APIs are all running on your IRIS server, which is also storing the data on Users, Articles and Comments.
+
+Try signing up as a new user, and then add one or more posts.  Then you can add comments, amend your posts, create new users who can follow each other and/or favourite each other's articles.
 
