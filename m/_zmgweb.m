@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 01 December 2020
+ ; 3 December 2020
  ;
  QUIT
  ;
@@ -75,7 +75,10 @@ api(%cgi,%var,%sys) ; mg_web handler for URLs matching /api/*
  ;
  i call="" q $$notFound()
  s req("call")=call
- s call="$$"_call_"(.req)"
+ i $e(call,1,6)="class(" d
+ . s call="##"_call_"(.req)"
+ e  d
+ . s call="$$"_call_"(.req)"
  ;m ^trace($h,"req")=req
  QUIT @call
  ;

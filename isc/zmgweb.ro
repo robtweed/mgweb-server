@@ -1,6 +1,6 @@
 IRIS for Windows^MAC^mg-web back-end routines^~Format=IRIS.S~^RAW
-%RO on 03 Dec 2020   2:51 PM
-%zmgweb^MAC^^65715,42331.087507^0
+%RO on 03 Dec 2020   4:44 PM
+%zmgweb^MAC^^65716,60263.112524^0
 %zmgweb ; mg-web M back-end main interface
  ;
  ;----------------------------------------------------------------------------
@@ -27,7 +27,7 @@ IRIS for Windows^MAC^mg-web back-end routines^~Format=IRIS.S~^RAW
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 01 December 2020
+ ; 3 December 2020
  ;
  QUIT
  ;
@@ -78,7 +78,10 @@ api(%cgi,%var,%sys) ; mg_web handler for URLs matching /api/*
  ;
  i call="" q $$notFound()
  s req("call")=call
- s call="$$"_call_"(.req)"
+ i $e(call,1,6)="class(" d
+ . s call="##"_call_"(.req)"
+ e  d
+ . s call="$$"_call_"(.req)"
  ;m ^trace($h,"req")=req
  QUIT @call
  ;
