@@ -775,7 +775,7 @@ So, I could modify the example above to something like this:
          QUIT $$response^%zmgweb(.res)
 
 
-## Step 10: Add a POST API
+## Add a POST API
 
 You can see from the example and changes we made so far how everything you need to know in a GET REST/HTTP request is made available to you via the *req* array.
 
@@ -1296,4 +1296,41 @@ Assuming the IP address of your Linux server or Raspberry Pi is *192.168.1.100*,
 Make sure you add that forward-slash (/) at the end of the URL.  You should now see the RealWorld Conduit UI appearing and you're ready to run the application.  Of course, the back-end handlers for the Conduit REST APIs are all running on your IRIS server, which is also storing the data on Users, Articles and Comments.
 
 Try signing up as a new user, and then add one or more posts.  Then you can add comments, amend your posts, create new users who can follow each other and/or favourite each other's articles.
+
+
+## Stopping and Restarting the IRIS Container
+
+Provided you've set up and started the Container to persist the IRIS database files, on a host directory, there's very little you need to do if you stop and restart the Container.  All the routing Globals and routines you installed for *mg_web*, *mgsi* will re-appear from the files on the mapped host directory.  If you'd installed the Conduit back-end handler routines, they'll be there also.
+
+The only thing you need to do is to restart the *mgsi* "superserver".  There's a couple of ways you can do that.  If you've mapped the *~/mgweb* folder into the IRIS Container, and if it still contains the cloned copy of the *mgweb-server* repository, then you can simply do this:
+
+- Shell into the IRIS container:
+
+        docker exec -it my-iris bash
+
+- Run the following ObjectScript script file:
+
+        irisowner@97b51053bfc8:~$ iris session IRIS < mgweb/mgweb-server/isc/start.txt
+
+
+Alternatively, you can simply do this:
+
+- start an IRIS terminal process:
+
+        docker exec -it my-iris iris session IRIS
+
+        Node: 8a6940088a16, Instance: IRIS
+        USER>
+
+Then type:
+
+        USER> d start^%zmgsi(0)
+
+and then exit the IRIS terminal session:
+
+        USER> h
+
+
+Your IRIS Container is now ready again for use with your *mg_web Server Appliance*.
+
 
