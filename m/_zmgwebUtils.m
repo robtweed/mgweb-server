@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 2 December 2020
+ ; 6 December 2020
  ;
  QUIT
  ;
@@ -252,7 +252,8 @@ parseJSON(jsonString,propertiesArray)
  s error=""
  s buff=$g(jsonString)
  s buff=$$removeSpaces(buff)
- s buff=$$replace(buff,"\""","\'")
+ ;s buff=$$replace(buff,"\""","\'")
+ s buff=$$replace(buff,"\""",$c(0,1,0))
  s arrRef="array"
  s c=$e(buff,1)
  s buff=$e(buff,2,$l(buff))
@@ -311,7 +312,8 @@ parseJSONObject(buff,subs)
  . . s subs2=subs
  . . i subs'="" s subs2=subs2_","
  . . s subs2=subs2_name
- . . i value["\'" s value=$$replace(value,"\'","""""")
+ . . ;i value["\'" s value=$$replace(value,"\'","""""")
+ . . i value[$c(0,1,0) s value=$$replace(value,$c(0,1,0),"\""""")
  . . s subs2=$$replace(subs2,$c(2),":")
  . . s value=$$replace(value,$c(2),":")
  . . s x="s "_arrRef_"("_subs2_")="_value
@@ -321,16 +323,17 @@ parseJSONObject(buff,subs)
  QUIT error
  ;
 parseJSONArray(buff,subs)
- n c,error,name,no,stop,subs2,value,x
- s stop=0,name="",no=0,error=""
+ n c,error,name,no,inString,stop,subs2,value,x
+ s stop=0,name="",no=0,error="",inString=0
  f  d  q:stop
  . s c=$e(buff,1)
  . i c="" s error=1,stop=1 q
  . s buff=$e(buff,2,$l(buff))
- . i c=":" d  q:stop
+ . i c="""" s inString='inString
+ . i 'inString,c=":" d  q:stop
  . . i name'="" q
  . . s error=1,stop=1
- . i c="]" d  q
+ . i 'inString,c="]" d  q
  . . s stop=1
  . . i name="" q
  . . s no=no+1
@@ -339,16 +342,17 @@ parseJSONArray(buff,subs)
  . . s subs2=subs2_no
  . . s subs2=$$replace(subs2,$c(2),":")
  . . s name=$$replace(name,$c(2),":")
+ . . s name=$$replace(name,$c(0,1,0),"\""""")
  . . s x="s "_arrRef_"("_subs2_")="_name
  . . x x
- . i c="[" d  q
+ . i 'inString,c="[" d  q
  . . s no=no+1
  . . s subs2=subs
  . . i subs'="" s subs2=subs2_","
  . . s subs2=subs2_no
  . . s error=$$parseJSONArray(.buff,subs2)
  . . i error=1 s stop=1 q
- . i c="{" d  q
+ . i 'inString,c="{" d  q
  . . s no=no+1
  . . s subs2=subs
  . . i subs'="" s subs2=subs2_","
@@ -358,7 +362,7 @@ parseJSONArray(buff,subs)
  . s subs2=subs
  . i subs'="" s subs2=subs2_","
  . s subs2=subs2_""""_name_""""
- . i c="," d  q
+ . i 'inString,c="," d  q
  . . i name="" q
  . . d  q:stop
  . . . i $e(name,1)="""",$e(name,$l(name))="""" q
@@ -368,6 +372,8 @@ parseJSONArray(buff,subs)
  . . s subs2=subs
  . . i subs'="" s subs2=subs2_","
  . . s subs2=subs2_""""_no_""""
+ . . s name=$$replace(name,$c(2),":")
+ . . s name=$$replace(name,$c(0,1,0),"\""""")
  . . s x="s "_arrRef_"("_subs2_")="_name
  . . x x
  . . s name=""
