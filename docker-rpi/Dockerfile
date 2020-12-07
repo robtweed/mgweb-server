@@ -3,7 +3,7 @@
 # Dockerised version of mg_web with YottaDB, using Apache
 
 # M/Gateway Developments Ltd
-# 2 December 2020
+# 7 December 2020
 
 FROM ubuntu:18.04
 
@@ -30,7 +30,7 @@ RUN apt-get install -y \
 
 # Create app directory
 RUN mkdir -p /opt/mgweb \
- && mkdir /opt/mg_web \
+ && mkdir /opt/mg_web  \
  && mkdir /opt/mgweb/m \
  && mkdir /opt/yottadb
 
@@ -72,12 +72,13 @@ RUN sed -i 's/x86_64/armv7l/g' /opt/mgweb/ydb \
 
 RUN git clone https://github.com/robtweed/mgweb-server /opt/mgweb/server \
   && mv /opt/mgweb/server/m/* /opt/mgweb/m/ \
-  # && mv /opt/mgweb/server/config/mgweb.conf-yottadb-apache /opt/mgweb/mgweb.conf \
   && mv /opt/mgweb/server/config/mgweb.conf.json /opt/mgweb/mgweb.conf.json \
   && mv /opt/mgweb/server/config/mgweb.log /opt/mgweb \
   && sed -i 's/x86_64/armv7l/g' /opt/mgweb/mgweb.conf.json \
-  && chown www-data:www-data /opt/mgweb/* \
-  && cp /opt/mgweb/server/apache/* /etc/apache2
+  && cp /opt/mgweb/server/apache/apache2.conf /etc/apache2 \
+  && cp /opt/mgweb/server/apache/ports.conf /etc/apache2 \
+  && cp /opt/mgweb/server/apache/mpm_event.conf /opt/mgweb \
+  && chown www-data:www-data /opt/mgweb/*
 
 RUN echo "Installing YottaDB..."
 

@@ -25,6 +25,10 @@ if [ ! -f "/opt/mgweb/mapped/mgweb.conf.json" ]; then
   mv /opt/mgweb/mgweb.conf.json /opt/mgweb/mapped
 fi
 
+if [ ! -f "/opt/mgweb/mapped/mpm_event.conf" ]; then
+  mv /opt/mgweb/mpm_event.conf /opt/mgweb/mapped
+fi
+
 export ydb_gbldir=/opt/yottadb/yottadb.gld
 /usr/local/lib/yottadb/r130/mupip rundown -region default
 /usr/local/lib/yottadb/r130/mupip set -key_size=1019 -region default
