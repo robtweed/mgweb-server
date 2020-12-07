@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 6 December 2020
+ ; 7 December 2020
  ;
  QUIT
  ;
@@ -272,17 +272,20 @@ parseJSON(jsonString,propertiesArray)
  QUIT ""
  ;
 parseJSONObject(buff,subs)
- n c,error,name,stop,subs2,value
- s stop=0,name="",error=""
+ n c,error,inString,name,stop,subs2,value
+ s stop=0,name="",error="",inString=0
  f  d  q:stop
  . s c=$e(buff,1)
  . i c="" s error=1,stop=1 q
  . s buff=$e(buff,2,$l(buff))
- . i c="[" s error=1,stop=1 q
- . i c="}" d  q
+ . i c="""" s inString='inString
+ . i 'inString,c="[" s error=1,stop=1 q
+ . i 'inString,c="}" d  q
  . . s stop=1
- . i c=":" d  q
+ . i 'inString,c=":" d  q
  . . n subs2,x
+ . . s name=$$replace(name,$c(0,1,0),"\""""")
+ . . s name=$$replace(name,$c(2),":")
  . . s value=$$getJSONValue(.buff)
  . . d  q:stop
  . . . i value="" q
@@ -318,7 +321,7 @@ parseJSONObject(buff,subs)
  . . s value=$$replace(value,$c(2),":")
  . . s x="s "_arrRef_"("_subs2_")="_value
  . . x x
- . i c="," s name="" q
+ . i 'inString,c="," s name="" q
  . s name=name_c q
  QUIT error
  ;
