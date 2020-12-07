@@ -3,7 +3,7 @@
 export ydb_gbldir=/opt/yottadb/yottadb.gld
 ./ydb_run reconfigure^%zmgwebUtils
 
-if [ !-f "/etc/apache2/mods-enabled/mpm_event.conf.bak" ]; then
+if [ ! -f "/etc/apache2/mods-enabled/mpm_event.conf.bak" ]; then
   cp /etc/apache2/mods-enabled/mpm_event.conf /etc/apache2/mods-enabled/mpm_event.conf.bak
 fi
 

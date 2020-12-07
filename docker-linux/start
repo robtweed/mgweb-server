@@ -8,12 +8,12 @@ if [ -f "/opt/mgweb/mapped/start" ]; then
   /opt/mgweb/mapped/start
 fi
 
-# SIGTERM-handler this funciton will be executed when the container receives the SIGTERM signal (when stopping)
 term_handler(){
    echo "*** Container stopping - Please wait *****"
    /etc/init.d/apache2 stop
    echo "Apache stopped and connections to YottaDB released"
    sleep 5
+   echo "Container will now stop"
    exit 0
 }
 
@@ -21,14 +21,24 @@ term_handler(){
 trap 'term_handler' SIGTERM
 trap 'term_handler' SIGINT
 
-/etc/init.d/apache2 start
-echo "Apache started"
-#service xinetd start
+if [ ! -f "/opt/mgweb/mapped/mgweb.conf.json" ]; then
+  mv /opt/mgweb/mgweb.conf.json /opt/mgweb/mapped
+fi
+
+if [ ! -f "/opt/mgweb/mapped/mpm_event.conf" ]; then
+  mv /opt/mgweb/mpm_event.conf /opt/mgweb/mapped
+fi
+
 export ydb_gbldir=/opt/yottadb/yottadb.gld
 /usr/local/lib/yottadb/r130/mupip rundown -region default
 /usr/local/lib/yottadb/r130/mupip set -key_size=1019 -region default
 /usr/local/lib/yottadb/r130/mupip set -record_size=1048576 -region default
 ./ydb_run start^%zmgwebUtils
+
+/etc/init.d/apache2 start
+echo "Apache started"
+#service xinetd start
+
 echo ""
 echo "The mgweb Container is ready for use!"
 echo ""
@@ -38,5 +48,4 @@ do
    tail -f /var/log/apache2/other_vhosts_access.log & wait ${!}
 done
 
-# tail -f /var/log/apache2/other_vhosts_access.log
 

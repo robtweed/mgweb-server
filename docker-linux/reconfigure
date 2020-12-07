@@ -3,5 +3,13 @@
 export ydb_gbldir=/opt/yottadb/yottadb.gld
 ./ydb_run reconfigure^%zmgwebUtils
 
+if [ ! -f "/etc/apache2/mods-enabled/mpm_event.conf.bak" ]; then
+  cp /etc/apache2/mods-enabled/mpm_event.conf /etc/apache2/mods-enabled/mpm_event.conf.bak
+fi
+
+if [ -f "/opt/mgweb/mapped/mpm_event.conf" ]; then
+  cp /opt/mgweb/mapped/mpm_event.conf /etc/apache2/mods-enabled
+fi
+
 /etc/init.d/apache2 restart
 echo "mg_web Reconfigured and Apache restarted"
