@@ -112,11 +112,15 @@ and you should see something like this:
 
         root@262478d3c23a:/opt/mgweb# ls -l mapped
 
-        total 4
-        -rw-r--r-- 1 www-data www-data 1117 Nov 27 16:16 mgweb.conf.json
+        total 8
+        -rw-r--r-- 1     1000     1000 1117 Dec  7 15:11 mgweb.conf.json
+        -rw-r--r-- 1 www-data www-data  774 Dec  7 17:05 mpm_event.conf
 
 
-Now look at the *~/mgweb* directory that you created on your host system.  You should see the same thing: a file named mgweb.conf.json has been created.  This was created automatically when the *mg_web Server Appliance* was started.  You'll see why this file is created and what it's for later, but for now, just be aware that this will always be created automatically in the host folder you map into the *mg_web Server Appliance*.
+Now look at the *~/mgweb* directory that you created on your host system.  You should see the same thing: two files named *mgweb.conf.json* and *mpm_event.conf* have been created.  These files were 
+created automatically when the *mg_web Server Appliance* was started.  You'll find out what
+they're for if you read the [tutorial on using the *mg_web Server Appliance* with IRIS](./IRIS.md)
+, but for now, just be aware that this will always be created automatically in the host folder you map into the *mg_web Server Appliance*.
 
 You're ready to begin!
 

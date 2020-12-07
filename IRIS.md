@@ -234,7 +234,9 @@ We need to switch the handling of */api uris* from *internal* (ie the internal Y
             "servers": ["iris0"]        <=======
           },
 
-Save this edited version of the *mgweb.conf.json* file.  Now we just need to rebuild the actual *mgweb.conf* file from this JSON version and restart Apache.  This can be done by first shelling into the *mg_web Server Appliance* Container:
+Save this edited version of the *mgweb.conf.json* file.
+
+Now we just need to rebuild the actual *mgweb.conf* file from this JSON version and restart Apache.  This can be done by first shelling into the *mg_web Server Appliance* Container:
 
         docker exec -it mgweb bash
 
@@ -262,6 +264,21 @@ If you type this:
         cat mgweb.conf
 
 you'll see the new, modified version of *mg_web*'s configuration file which will contain your changes.
+
+
+There's something else that has happened when you ran the *reconfigure* script. 
+You may have noticed another file that appeared in your mapped host directory when you first started
+the *mg_web Server Appliance* - it's the one named *mpm_event.conf*.  This is specially pre-configured
+Apache configuration file that will limit the number of connections that Apache will make to the
+IRIS system to just two.  This file has now replaced the original one (take a look in the
+*mg_web Server Appliance* Container's */etc/apache2/mods-enabled* folder).
+
+The reason for enforcing this connection limit is to prevent the very limited number of IRIS licenses
+that are available on the IRIS Container being exhausted by concurrent *mg_web* requests.
+
+Note: you can edit the settings of the *mpm_event.conf* file before running the *reconfigure*
+script if you want to configure a higher maximum number of concurrent connections between
+*mg_web* and IRIS.
 
 
 Everything should now be ready to try out. We can do that using a *curl* command while still in the *mg_web Server Appliance* Container's shell:
