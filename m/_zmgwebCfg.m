@@ -47,6 +47,9 @@ build(filename,mgwebConfPath) ;
  . . n io,name,value
  . . s io=$io
  . . u mgwebConfPath
+ . . i $g(config("admin"))="true" d
+ . . . s config("locations","/mgweb/sys","administrator")="on"
+ . . . k config("admin")
  . . s name=""
  . . f  s name=$o(config(name)) q:name=""  d
  . . . ;
