@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 3 December 2020
+ ; 7 August 2022
  ;
  QUIT
  ;
@@ -54,7 +54,7 @@ getIssuer() ;
  s iss=$g(^%zmgweb("jwt","iss"))
  i iss="" d
  . s iss="mg_web"
- . d setIssuer(iss)
+ . i $$setIssuer(iss)
  QUIT iss
  ;
 createJWT(payload,expiry,jwtSecret)

@@ -85,8 +85,8 @@ api(%cgi,%var,%sys) ; mg_web handler for URLs matching /api/*
  ;m ^trace($h,"req")=req
  QUIT @call
  ;
-response(res) ;
- QUIT $$response^%zmgwebUtils(.res)
+response(res,headers) ;
+ QUIT $$response^%zmgwebUtils(.res,.headers)
  ;
 notFound() ;
   ;
@@ -368,7 +368,7 @@ getIssuer() ;
  s iss=$g(^%zmgweb("jwt","iss"))
  i iss="" d
  . s iss="mg_web"
- . d setIssuer(iss)
+ . i $$setIssuer(iss)
  QUIT iss
  ;
 createJWT(payload,expiry,jwtSecret)
@@ -594,8 +594,8 @@ buildRoutes ;
  i $$buildAPIs()
  QUIT
  ;
-response(res) ;
- QUIT $$header^%zmgweb()_$$arrayToJSON("res")
+response(res,headers) ;
+ QUIT $$header^%zmgweb(.headers)_$$arrayToJSON("res")
  ;
 setJWTIssuer(filename)
  ;

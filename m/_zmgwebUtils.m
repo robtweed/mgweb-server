@@ -24,7 +24,7 @@
  ;|  limitations under the License.                                          |
  ;----------------------------------------------------------------------------
  ;
- ; 7 December 2020
+ ; 10 August 2022
  ;
  QUIT
  ;
@@ -49,8 +49,8 @@ buildRoutes ;
  i $$buildAPIs()
  QUIT
  ;
-response(res) ;
- QUIT $$header^%zmgweb()_$$arrayToJSON("res")
+response(res,headers) ;
+ QUIT $$header^%zmgweb(.headers)_$$arrayToJSON("res")
  ;
 setJWTIssuer(filename)
  ;

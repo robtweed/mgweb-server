@@ -82,8 +82,8 @@ api(%cgi,%var,%sys) ; mg_web handler for URLs matching /api/*
  ;m ^trace($h,"req")=req
  QUIT @call
  ;
-response(res) ;
- QUIT $$response^%zmgwebUtils(.res)
+response(res,headers) ;
+ QUIT $$response^%zmgwebUtils(.res,.headers)
  ;
 notFound() ;
   ;
