@@ -6,11 +6,11 @@ IRIS for Windows^MAC^mg-web back-end routines^~Format=IRIS.S~^RAW
  ;----------------------------------------------------------------------------
  ;| zmgweb: mg-web Back-end Support Routines                                 |
  ;|                                                                          |
- ;| Copyright (c) 2020 M/Gateway Developments Ltd,                           |
+ ;| Copyright (c) 2023 MGateway Ltd,                                         |
  ;| Redhill, Surrey UK.                                                      |
  ;| All rights reserved.                                                     |
  ;|                                                                          |
- ;| http://www.mgateway.com                                                  |
+ ;| https://www.mgateway.com                                                 |
  ;| Email: rtweed@mgateway.com                                               |
  ;|                                                                          |
  ;|                                                                          |
@@ -206,11 +206,11 @@ header(headers)  ;
  ;----------------------------------------------------------------------------
  ;| zmgweb: mg-web Back-end Support Routines                                 |
  ;|                                                                          |
- ;| Copyright (c) 2020 M/Gateway Developments Ltd,                           |
+ ;| Copyright (c) 2023 MGateway Ltd,                                         |
  ;| Redhill, Surrey UK.                                                      |
  ;| All rights reserved.                                                     |
  ;|                                                                          |
- ;| http://www.mgateway.com                                                  |
+ ;| https://www.mgateway.com                                                 |
  ;| Email: rtweed@mgateway.com                                               |
  ;|                                                                          |
  ;|                                                                          |
@@ -317,11 +317,11 @@ build(filename,mgwebConfPath) ;
  ;----------------------------------------------------------------------------
  ;| zmgweb: mg-web Back-end Support Routines                                 |
  ;|                                                                          |
- ;| Copyright (c) 2020 M/Gateway Developments Ltd,                           |
+ ;| Copyright (c) 2023 MGateway Ltd,                                         |
  ;| Redhill, Surrey UK.                                                      |
  ;| All rights reserved.                                                     |
  ;|                                                                          |
- ;| http://www.mgateway.com                                                  |
+ ;| https://www.mgateway.com                                                 |
  ;| Email: rtweed@mgateway.com                                               |
  ;|                                                                          |
  ;|                                                                          |
@@ -548,11 +548,11 @@ getExpiryTime(expiry) ;
  ;----------------------------------------------------------------------------
  ;| zmgweb: mg-web Back-end Support Routines                                 |
  ;|                                                                          |
- ;| Copyright (c) 2020 M/Gateway Developments Ltd,                           |
+ ;| Copyright (c) 2023 MGateway Ltd,                                         |
  ;| Redhill, Surrey UK.                                                      |
  ;| All rights reserved.                                                     |
  ;|                                                                          |
- ;| http://www.mgateway.com                                                  |
+ ;| https://www.mgateway.com                                                 |
  ;| Email: rtweed@mgateway.com                                               |
  ;|                                                                          |
  ;|                                                                          |

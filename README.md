@@ -1,7 +1,7 @@
 # mgweb-server: Generic Back-end for mg_web REST services
  
 Rob Tweed <rtweed@mgateway.com>
-24 November 2020, M/Gateway Developments Ltd [http://www.mgateway.com](http://www.mgateway.com)  
+25 May 2023, MGateway Ltd [https://www.mgateway.com](https://www.mgateway.com)  
 
 Twitter: @rtweed
 
@@ -96,11 +96,11 @@ Read [the *mg_web Server Appliance* IRIS Guide and Tutorial](./IRIS.md) for full
 ----------------
 # License
 
- Copyright (c) 2020 M/Gateway Developments Ltd,                           
+ Copyright (c) 2023 MGateway Ltd,                           
  Redhill, Surrey UK.                                                      
  All rights reserved.                                                     
                                                                            
-  http://www.mgateway.com                                                  
+  https://www.mgateway.com                                                  
   Email: rtweed@mgateway.com                                               
                                                                            
                                                                            

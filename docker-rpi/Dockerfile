@@ -2,7 +2,7 @@
 
 # Dockerised version of mg_web with YottaDB, using Apache
 
-# M/Gateway Developments Ltd
+# Copyright 2023, MGateway Ltd
 # 7 December 2020
 
 FROM ubuntu:18.04

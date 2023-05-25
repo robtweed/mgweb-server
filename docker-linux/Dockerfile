@@ -2,8 +2,8 @@
 
 # Dockerised version of mg_web with YottaDB, using Apache
 
-# M/Gateway Developments Ltd
-# 7 December 2020
+# Copyright 2023, MGateway Ltd
+# 11 August 2022
 
 FROM ubuntu:20.04
 
@@ -27,7 +27,8 @@ RUN apt-get install -y \
   apache2-dev \
   libelf1 \
   libtinfo5 \
-  lsof
+  lsof \
+  libssl-dev
 
 # Create app directory
 RUN mkdir -p /opt/mgweb \
@@ -39,6 +40,8 @@ WORKDIR /opt/mgweb
 
 # Get mg-web
 
+RUN echo "Installing mg_web.."
+
 RUN git clone https://github.com/chrisemunt/mg_web  \
  && cp /opt/mgweb/mg_web/src/*.h /opt/mg_web \
  && cp /opt/mgweb/mg_web/src/*.c /opt/mg_web \
@@ -47,7 +50,7 @@ RUN git clone https://github.com/chrisemunt/mg_web  \
  && dos2unix *
 
 RUN cd /opt/mg_web \
- && apxs -a -i -c mg_web_apache.c mg_web.c mg_websocket.c
+ && apxs -a -i -c mg_web_apache.c mg_web.c mg_webstatus.c mg_webtls.c mg_websocket.c
 
 # Copy files from the current Docker directory
 # and make any scripts executable
@@ -68,9 +71,12 @@ RUN dos2unix /opt/mgweb/* \
 # and move its M code and mg_web conf and log
 # files into place 
 
+RUN echo "Installing mgweb-server files"
+
 RUN git clone https://github.com/robtweed/mgweb-server /opt/mgweb/server \
   && mv /opt/mgweb/server/m/* /opt/mgweb/m/ \
-  && mv /opt/mgweb/server/config/mgweb.conf.json /opt/mgweb/mgweb.conf.json \
+  && mv /opt/mgweb/_zmgewd.m /opt/mgweb/m/_zmgewd.m \
+# && cp /opt/mgweb/mgweb.conf.json /opt/mgweb/mgweb.conf \
   && mv /opt/mgweb/server/config/mgweb.log /opt/mgweb \
   && cp /opt/mgweb/server/apache/apache2.conf /etc/apache2 \
   && cp /opt/mgweb/server/apache/ports.conf /etc/apache2 \
@@ -85,8 +91,18 @@ RUN mkdir /tmp/tmp \
   && chmod +x ydbinstall.sh \
   && ./ydbinstall.sh --utf8 default --verbose --force-install \
   && export ydb_gbldir=/opt/yottadb/yottadb.gld \
-  && /usr/local/lib/yottadb/r130/mumps -run ^GDE < /opt/mgweb/gde.txt \
-  && /usr/local/lib/yottadb/r130/mupip create
+  && /usr/local/lib/yottadb/r134/mumps -run ^GDE < /opt/mgweb/gde.txt \
+  && /usr/local/lib/yottadb/r134/mupip create
+
+# Install EWD Routines into /opt/mgweb/m
+
+RUN echo "Loading EWD Routine files..."
+
+RUN git clone https://github.com/robtweed/EWD /opt/mgweb/ewd \
+  && cp /opt/mgweb/ewd/*.m /opt/mgweb/m \
+  && rm -r /opt/mgweb/ewd \
+  && cd /opt/mgweb/m \
+  && dos2unix *
 
 # Install and configure the network mgsi interface code to allow
 # network access to YottaDB (default setup uses
@@ -95,19 +111,21 @@ RUN mkdir /tmp/tmp \
 RUN git clone https://github.com/chrisemunt/mgsi /opt/mgweb/mgsi \
   && cp /opt/mgweb/mgsi/yottadb/* /opt/mgweb/m \
   && /opt/mgweb/ydb_run_temp ylink^%zmgsi \
-  && rm -r /opt/mgweb/mgsi \
-  && cp /opt/mgweb/mg_web/unix/zmgsi.ci /usr/local/lib/yottadb/r130
+  && cp /opt/mgweb/mgsi/unix/zmgsi.ci /usr/local/lib/yottadb/r134 \
+  && rm -r /opt/mgweb/mgsi
 
 # Set up the xinetd interface for optional network access
 # to YottaDB
 
-RUN cp /opt/mgweb/mg_web/unix/zmgsi_ydb /usr/local/lib/yottadb/r130 \
-  && cp /opt/mgweb/mg_web/unix/zmgsi_xinetd /etc/xinetd.d/zmgsi_xinetd \
-  && cp /opt/mgweb/mg_web/unix/zmgsi.ci /usr/local/lib/yottadb/r130 \
-  && sed -i 's/122/130/g' /etc/xinetd.d/zmgsi_xinetd \
-  && sed -i 's/122/130/g' /usr/local/lib/yottadb/r130/zmgsi_ydb \
-  && sed -i 's/1.22/1.30/g' /usr/local/lib/yottadb/r130/zmgsi_ydb \
-  && echo "zmgsi_xinetd          7041/tcp                        # zmgsi" >> /etc/services
+#RUN cp /opt/mgweb/mgsi/unix/zmgsi_ydb /usr/local/lib/yottadb/r134 \
+#  && cp /opt/mgweb/mgsi/unix/zmgsi_xinetd /etc/xinetd.d/zmgsi_xinetd \
+#  && cp /opt/mgweb/mgsi/unix/zmgsi.ci /usr/local/lib/yottadb/r134 \
+#  && sed -i 's/130/134/g' /etc/xinetd.d/zmgsi_xinetd \
+#  && sed -i 's/130/134/g' /usr/local/lib/yottadb/r134/zmgsi_ydb \
+#  && sed -i 's/1.30/1.34/g' /usr/local/lib/yottadb/r134/zmgsi_ydb \
+#  && echo "zmgsi_xinetd          7041/tcp                        # zmgsi" >> /etc/services \
+#  && rm -r /opt/mgweb/mgsi
+
 
 # Pre-load the %zmgweb* routines to prevent
 # IRIS-specific code generating warnings during startup
